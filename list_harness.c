@@ -14,8 +14,7 @@ int main(int argc, char *argv[]) {
                 for (int i = 0; i < num; i++) {
                     unsigned char ans = str[i];
                         if(!isspace(ans)) {
-                            unsigned char 
-                            printf( unsigned char ans);
+                            printf(unsigned char ans);
                             
                                 }
                                         }    
@@ -72,7 +71,7 @@ void list_visit_items(list_t *l, void (*visitor)(void *v)){
     }
 }
 
-void list_visit_items(list_t *l, void *v) {
+void list_visit_tail(list_t *l, void *v) {
     // insert input when second parameter is tail
     // print contents of list 
 }
