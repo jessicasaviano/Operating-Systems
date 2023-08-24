@@ -6,67 +6,69 @@
 int main(int argc, char *argv[]) {
 
     FILE *f = fopen(argv[1], "r");
-    char str[1024];
+    char str[41];
     while(!feof(f)){
-        while(fgets(str, 1024,f ) != NULL){
-            if(argv[2] == "echo"){ 
-                int num = strlen(str);
-                for (int i = 0; i < num; i++) {
-                    unsigned char ans = str[i];
-                        if(!isspace(ans)) {
-                            printf(unsigned char ans);
-                            
-                                }
-                                        }    
-            }
             
-        }
-                                        fclose(f);    
-
+        //fgetc in  aloop, filing in a buffer, fscanf, read until newline, then print buffer, then go do back to top of loop and repeat
+        //while(fgets(str, 40,f ) != NULL){
+            if(argv[2] == "echo"){ 
+                printf("%s\n",str);
+                 fclose(f);    
+            }
+    }                        
     
-            if(argv[2] == "tail"){
+            //if(argv[2] == "tail"){
                 //do something ("the inconjunction with functionanlity specified below")
-    }
-            if(argv[2] == "tail-remove"){
+   // }
+          //  if(argv[2] == "tail-remove"){
         
                 //do something
-    }
+   // }
 
 
-    }
+    
 
     
 return 0;
 }
+//list item struct with next and prevous pointer (singly or doubly)
 
-typedef struct list {
-    struct list * head;
-    struct list * tail;
-    struct list * next;
-    struct list * previous;
-    int *data;
-    int (*compare)(const void *, const void *);
-    void (*datum_delete)(void *);
-} list_t;
+//typedef struct list {
+  //  struct list * head;
+    //struct list * tail;
+
+    //int (*compare)(const void *, const void *);
+    //void (*datum_delete)(void *);
+//} list_t;
+
+
+//typedef struct list_item {
+   
+  //  struct list_item * next;
+    //void *datum;
+    
+//} list_item_t;
 
 // constructor
+/*
 void list_init(list_t *l, int (*compare)(const void *key, const void *with),void (*datum_delete)(void *datum)){
+    list_t *mylist;
+    mylist = (list_t*)malloc(sizeof(mylist));
     l->head = NULL;
     l-> compare = compare;
     l->datum_delete = datum_delete;
     l -> tail = NULL;
 
-
 }
 
-void visitor(int *v){
-    printf(*v); 
+void print_string(void *v){
+    printf('%s\n',(char *)v); 
 
 }
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
     list_t *current = l->head;
     while(current != NULL){
-        visitor(current->data);
+        print_string(current->datum);
         current = current->next;
     }
 }
@@ -75,9 +77,11 @@ void list_insert_tail(list_t *l, void *v) {
     // insert input when second parameter is tail
     // print contents of list 
 }
-
+*/
 
 //void list_insert_tail(list_t *l, void *v){
 
 // tester comment
 //}
+
+//free in remove section!!
