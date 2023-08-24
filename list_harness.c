@@ -44,24 +44,24 @@ return 0;
 }
 //list item struct with next and prevous pointer (singly or doubly)
 
-//typedef struct list {
-  //  struct list * head;
-    //struct list * tail;
+typedef struct list {
+  struct list * head;
+    struct list * tail;
 
-    //int (*compare)(const void *, const void *);
-    //void (*datum_delete)(void *);
-//} list_t;
+    int (*compare)(const void *, const void *);
+    void (*datum_delete)(void *);
+} list_t;
 
 
-//typedef struct list_item {
+typedef struct list_item {
    
-  //  struct list_item * next;
-    //void *datum;
+    struct list_item * next;
+    void *datum;
     
-//} list_item_t;
+} list_item_t;
 
-// constructor
-/*
+ //constructor
+
 void list_init(list_t *l, int (*compare)(const void *key, const void *with),void (*datum_delete)(void *datum)){
     list_t *mylist;
     mylist = (list_t*)malloc(sizeof(mylist));
@@ -88,7 +88,7 @@ void list_insert_tail(list_t *l, void *v) {
     // insert input when second parameter is tail
     // print contents of list 
 }
-*/
+
 
 //void list_insert_tail(list_t *l, void *v){
 
