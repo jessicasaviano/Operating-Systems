@@ -7,14 +7,25 @@ int main(int argc, char *argv[]) {
 
     FILE *f = fopen(argv[1], "r");
     char str[41];
-    while(!feof(f)){
-            
+    int c;
+    int count = 0;
+    
         //fgetc in  aloop, filing in a buffer, fscanf, read until newline, then print buffer, then go do back to top of loop and repeat
-        //while(fgets(str, 40,f ) != NULL){
+        
             if(argv[2] == "echo"){ 
-                printf("%s\n",str);
-                 fclose(f);    
+                while((c = fgetc(f)) != EOF){
+                   if (c == '\n') {
+                    str[count] = '\0'; 
+                    printf("%s\n", str);
+                    count = 0;
+        } else {
+            str[count] = c;
+            count++;
+        }
+                 
             }
+            
+            
     }                        
     
             //if(argv[2] == "tail"){
