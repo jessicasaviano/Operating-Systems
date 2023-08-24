@@ -14,7 +14,8 @@ int main(int argc, char *argv[]) {
                 for (int i = 0; i < num; i++) {
                     unsigned char ans = str[i];
                         if(!isspace(ans)) {
-                            printf(unsigned char ans);
+                            unsigned char 
+                            printf( unsigned char ans);
                             
                                 }
                                         }    
@@ -25,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     
             if(argv[2] == "tail"){
-                //do something
+                //do something ("the inconjunction with functionanlity specified below")
     }
             if(argv[2] == "tail-remove"){
         
@@ -49,7 +50,7 @@ typedef struct list {
     void (*datum_delete)(void *);
 } list_t;
 
-
+// constructor
 void list_init(list_t *l, int (*compare)(const void *key, const void *with),void (*datum_delete)(void *datum)){
     l->head = NULL;
     l-> compare = compare;
@@ -70,6 +71,12 @@ void list_visit_items(list_t *l, void (*visitor)(void *v)){
         current = current->next;
     }
 }
+
+void list_visit_items(list_t *l, void *v) {
+    // insert input when second parameter is tail
+    // print contents of list 
+}
+
 
 //void list_insert_tail(list_t *l, void *v){
 
