@@ -61,7 +61,7 @@ void list_init(list_t *l, int (*compare)(const void *key, const void *with),void
 }
 
 void visitor(int *v){
-    printf(*v);
+    printf(*v); 
 
 }
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
