@@ -3,15 +3,12 @@
 #include <string.h>
 #include <ctype.h>
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[]){
 
     FILE *f = fopen(argv[1], "r");
     char str[41];
     int c;
-    int count = 0;
-    
-        //fgetc in  aloop, filing in a buffer, fscanf, read until newline, then print buffer, then go do back to top of loop and repeat
-        
+    int count = 0;    
             if(argv[2] == "echo"){ 
                 while((c = fgetc(f)) != EOF){
                    if (c == '\n') {
@@ -23,10 +20,8 @@ int main(int argc, char *argv[]) {
             count++;
         }
                  
-            }
-            
-            
-    }                        
+            } 
+                           
     
             //if(argv[2] == "tail"){
                 //do something ("the inconjunction with functionanlity specified below")
@@ -35,13 +30,21 @@ int main(int argc, char *argv[]) {
         
                 //do something
    // }
-
-
-    
-
+            }
     
 return 0;
+
 }
+
+
+//each line in each node
+//when list reaches lenght of zero, now print empty
+//remove three nodes at a time unitl empty for head
+//if theres only 2 left, remove those two, and then print empty
+//if the input file is compeltely empty just print empty and exit
+
+
+
 //list item struct with next and prevous pointer (singly or doubly)
 
 typedef struct list {
@@ -78,21 +81,24 @@ void print_string(void *v){
 }
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
     list_t *current = l->head;
+    list_item_t *next;
     while(current != NULL){
         print_string(current->datum);
-        current = current->next;
+        current = current-> next;
     }
 }
 
 void list_insert_tail(list_t *l, void *v) {
     // insert input when second parameter is tail
     // print contents of list 
+    list_item_t *item;
+    item = (list_item_t*)malloc(sizeof(list_item_t));
+    item->next = NULL;
+    l->tail = item;
+    v = malloc();
+    strncpy(v, str);
+
 }
 
-
-//void list_insert_tail(list_t *l, void *v){
-
-// tester comment
-//}
 
 //free in remove section!!
