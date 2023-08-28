@@ -22,11 +22,10 @@ int main(int argc, char *argv[]){
                  
             } 
                            
-    
-            //if(argv[2] == "tail"){
+        if(argv[2] == "tail"){
                 //do something ("the inconjunction with functionanlity specified below")
    // }
-          //  if(argv[2] == "tail-remove"){
+        if(argv[2] == "tail-remove"){
         
                 //do something
    // }

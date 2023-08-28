@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <list.h>
+#include "list.h"
 
 
 
@@ -23,8 +23,7 @@ void print_string(void *v){
 
 }
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
-    list_t *current = l->head;
-    list_item_t *next;
+    list_t *current = l->head->next;
     while(current != NULL){
         print_string(current->datum);
         current = current-> next;
@@ -38,12 +37,25 @@ void list_insert_tail(list_t *l, void *v) {
     item = (list_item_t*)malloc(sizeof(list_item_t));
     item->next = NULL;
     l->tail = item;
-    v = malloc();
-    strncpy(v, str);
+    item->datum = (void*)malloc(sizeof(char)*41);
+    strncpy(item->datum, v);
+    //l->tail->next = item;
+    l->tail = item;
+    l->number+=1;
 
 }
 
 void list_remove_head(list_t *l){
+   if(l->head == NULL){
+        printf("empty")
+
+
+   }
+   else{
+        list_t* temp = head;
+        head = head -> next;
+   }
+
     //do stuff
     //use free()
 
