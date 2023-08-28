@@ -6,14 +6,20 @@
 
 
 
+
 int main(int argc, char ** argv){
     if (argc != 3) {
         printf("ERROR");
         return 1;
     }
-    FILE *file = fopen(argv[1], "r");
+    
+
     if(strcmp("echo", argv[2])== 0){
-        printf("hi");
+        FILE *file = fopen(argv[1], "r");
+        char line[41];
+        while(fgets(line, 41, file) != NULL) {
+            printf("%s", line);
+    }
 
 
     }

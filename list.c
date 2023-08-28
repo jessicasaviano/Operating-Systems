@@ -22,6 +22,8 @@ void print_string(void *v){
     printf('%s\n',(char *)v); 
 
 }
+
+
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
     list_item_t *current = l->head;
     while(current != NULL){
