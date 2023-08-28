@@ -9,7 +9,7 @@ typedef struct list {
     int (*compare)(const void *, const void *);
     void (*datum_delete)(void *);
 } list_t;
-
+//
 
 typedef struct list_item {
    
