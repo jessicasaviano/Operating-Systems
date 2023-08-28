@@ -27,7 +27,7 @@ void list_visit_items(list_t *l, void (*visitor)(void *v)){
         current = current->next;
     }
 }
-
+//change
 void list_insert_tail(list_t *l, void *v) {
     // insert input when second parameter is tail
     // print contents of list 
