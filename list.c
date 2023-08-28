@@ -18,17 +18,13 @@ void list_init(list_t *l, int (*compare)(const void *key, const void *with),void
 
 }
 
-void print_string(void *v){
-    printf('%s\n',(char *)v); 
-
-}
 
 
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
-    list_item_t *current = l->head;
+    list_item_t *current = l->head->next;
     while(current != NULL){
-        print_string(current->datum);
-        current = current-> next;
+        visitor(current->datum);
+        current = current->next;
     }
 }
 
@@ -41,9 +37,9 @@ void list_insert_tail(list_t *l, void *v) {
     l->tail = item;
     item->datum = (void*)malloc(sizeof(char)*41);
     strcpy(item->datum, v);
-    //l->tail->next = item;
-    l->tail = item;
-    l->number+=1;
+    l->tail->next = item;
+    
+    
 
 }
 

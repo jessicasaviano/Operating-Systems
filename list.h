@@ -3,8 +3,8 @@
 #define LIST_H
 
 typedef struct list {
-    struct list * head;
-    struct list * tail;
+    struct list_item * head;
+    struct list_item * tail;
     unsigned int number;
     int (*compare)(const void *, const void *);
     void (*datum_delete)(void *);

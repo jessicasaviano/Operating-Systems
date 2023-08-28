@@ -6,10 +6,14 @@
 
 
 
+void visit(void *v){
+    printf('%s',(char *)v); 
+
+}
 
 int main(int argc, char ** argv){
     if (argc != 3) {
-        printf("ERROR");
+        printf("ERROR\n");
         return 1;
     }
     
@@ -17,7 +21,7 @@ int main(int argc, char ** argv){
     if(strcmp("echo", argv[2])== 0){
         FILE *file = fopen(argv[1], "r");
         char line[41];
-        while(fgets(line, 41, file) != NULL) {
+        while(fgets(line, 41, file) != NULL  ) {
             printf("%s", line);
     }
 
@@ -26,6 +30,15 @@ int main(int argc, char ** argv){
 
     if(strcmp("tail", argv[2])== 0){
         //do stuff
+        FILE *file = fopen(argv[1], "r");
+        list_t *singly = (list_t*) malloc(sizeof(list_t));
+        char line[41];
+        while(fgets(line, 41, file) != NULL) {
+            list_insert_tail(singly, line);
+    }
+        printf(singly);
+        //list_visit_items(singly, visit);
+        
 
 
     }
