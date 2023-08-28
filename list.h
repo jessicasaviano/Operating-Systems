@@ -17,10 +17,6 @@ typedef struct list_item {
     
 } list_item_t;
 
-void list_init(list_t *l,int (*compare)(const void *key, const void *with),void (*datum_delete)(void *datum));
-void print_string(void *v);
-void list_visit_items(list_t *l, void (*visitor)(void *v));
-void list_insert_tail(list_t *l, void *v);
-void list_remove_head(list_t *l);
+
 
 #endif
