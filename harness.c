@@ -1,12 +1,7 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> 90cd38f7f9d657de323d9ddf2f3327c655e69309
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-<<<<<<< HEAD
 #include <list.h>
 
 
@@ -57,44 +52,8 @@ void list_remove_head(list_t *l){
 //if theres only 2 left, remove those two, and then print empty
 //if the input file is compeltely empty just print empty and exit
 
-=======
-
-int main(int argc, char *argv[]){
-
-    FILE *f = fopen(argv[1], "r");
-    char str[41];
-    int c;
-    int count = 0;    
-            if(argv[2] == "echo"){ 
-                while((c = fgetc(f)) != EOF){
-                   if (c == '\n') {
-                    str[count] = '\0'; 
-                    printf("%s\n", str);
-                    count = 0;
-        } else {
-            str[count] = c;
-            count++;
-        }
-                 
-            } 
-                           
-    
-            //if(argv[2] == "tail"){
-                //do something ("the inconjunction with functionanlity specified below")
-   // }
-          //  if(argv[2] == "tail-remove"){
-        
-                //do something
-   // }
-            }
-    
-return 0;
->>>>>>> 90cd38f7f9d657de323d9ddf2f3327c655e69309
 
 }
 
 
-<<<<<<< HEAD
-=======
 
->>>>>>> 90cd38f7f9d657de323d9ddf2f3327c655e69309
