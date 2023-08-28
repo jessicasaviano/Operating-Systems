@@ -7,7 +7,11 @@
 
 
 int main(int argc, char ** argv){
-    File *file = fopen(argv[1], "r");
+    if (argc != 3) {
+        printf("ERROR");
+        return 1;
+    }
+    FILE *file = fopen(argv[1], "r");
     if(strcmp("echo", argv[2])== 0){
         printf("hi");
 

@@ -12,7 +12,6 @@ typedef struct list {
 //
 
 typedef struct list_item {
-   
     struct list_item * next;
     void *datum;
     

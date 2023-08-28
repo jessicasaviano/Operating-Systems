@@ -23,7 +23,7 @@ void print_string(void *v){
 
 }
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
-    list_t *current = l->head->next;
+    list_item_t *current = l->head;
     while(current != NULL){
         print_string(current->datum);
         current = current-> next;
@@ -38,34 +38,17 @@ void list_insert_tail(list_t *l, void *v) {
     item->next = NULL;
     l->tail = item;
     item->datum = (void*)malloc(sizeof(char)*41);
-    strncpy(item->datum, v);
+    strcpy(item->datum, v);
     //l->tail->next = item;
     l->tail = item;
     l->number+=1;
 
 }
 
-void list_remove_head(list_t *l){
-   if(l->head == NULL){
-        printf("empty")
+//void list_remove_head(list_t *l){
 
 
-   }
-   else{
-        list_t* temp = head;
-        head = head -> next;
-   }
 
-    //do stuff
-    //use free()
-
-//each line in each node
-//when list reaches lenght of zero, now print empty
-//remove three nodes at a time unitl empty for head
-//if theres only 2 left, remove those two, and then print empty
-//if the input file is compeltely empty just print empty and exit
-
-
-}
+//}
 
 
