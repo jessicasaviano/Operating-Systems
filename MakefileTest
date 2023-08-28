@@ -1,0 +1,9 @@
+CC = gcc
+CFLAGS = -g -Wall
+DEPS = list.h
+    
+%.o: %.c $(DEPS)
+    $(CC) $< $(CFLAGS) -c -o $@
+      
+list: list.o harness.o
+    $(CC) $(CFLAGS) -o list list.o harness.o
