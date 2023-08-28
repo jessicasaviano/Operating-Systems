@@ -21,32 +21,47 @@ void list_init(list_t *l, int (*compare)(const void *key, const void *with),void
 
 
 void list_visit_items(list_t *l, void (*visitor)(void *v)){
-    list_item_t *current = l->head->next;
+    //printf('hi1');
+    list_item_t *current = l->head;
     while(current != NULL){
+        //printf('hi');
         visitor(current->datum);
         current = current->next;
     }
+    
 }
 //change
 void list_insert_tail(list_t *l, void *v) {
-    // insert input when second parameter is tail
-    // print contents of list 
+
     list_item_t *item;
     item = (list_item_t*)malloc(sizeof(list_item_t));
     item->next = NULL;
-    l->tail = item;
-    item->datum = (void*)malloc(sizeof(char)*41);
-    strcpy(item->datum, v);
-    l->tail->next = item;
     
+    item->datum = (void*)malloc(sizeof(char)*42);
+    strcpy(item->datum, (char*)v);
+    
+    if(l->head == NULL ){
+        l->head = item;
+    }
+    else{
+        l->tail->next = item;
+    }
+    l->tail = item;
     
 
 }
 
-//void list_remove_head(list_t *l){
+void list_remove_head(list_t *l){
+    if(l->head == NULL){
+        printf("empty list");
+    }
+    else {
+        free(l->head->datum);
+        free(l->head);
+        l->tail = NULL;
+    }
 
 
-
-//}
+}
 
 

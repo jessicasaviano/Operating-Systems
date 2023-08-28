@@ -54,7 +54,6 @@ int main(int argc, char ** argv){
 
     if(strcmp("tail-remove", argv[2])== 0){
         //do stuff
-<<<<<<< HEAD
         FILE *file = fopen(argv[1], "r");
         //printf("hi");
         list_t *singly = (list_t*) malloc(sizeof(list_t));
@@ -68,26 +67,34 @@ int main(int argc, char ** argv){
             //printf(line);
             list_insert_tail(singly, line);
         }
-=======
-        FILE *file = fopen(argv[1] , "r");
-        list_t * newlist; 
-        list_initalize(&newlist, NULL, NULL);
-        for (int i = 3; i < argc; i++) {
-            list_insert_tail(&newlist, argv[i]);
+
+        while(sizeof(singly) >= 3){
+            list_remove_head(singly);
+            //list_remove_head(singly);
+            //list_remove_head(singly);
+            list_visit_items(singly, visit);
+            printf("\n----------\n");
+
         }
-        while (mylist.head != NULL) {
-            list_remove_h(&newlist);
-            if (mylist.head != NULL) {
-                printf("------\n");
-            }
+        /*
+        if(sizeof(singly) == 2){
+            list_remove_head(singly);
+            list_remove_head(singly);
+            list_visit_items(singly, visit);
+            printf("\n----------\n");
         }
-        printf("Empty List\n");
+        if(sizeof(singly) == 1){
+            list_remove_head(singly);
+            list_visit_items(singly, visit);
+            printf("\n----------\n");
+        }
 
-
->>>>>>> 50e54d9e0124081c373da8ff54ca42a8140b587c
-
-
+        if(sizeof(singly) == 0){
+            printf("<EMPTY>");
+        }
+*/
     }
+    
 
 
 }
