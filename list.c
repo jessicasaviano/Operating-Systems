@@ -23,7 +23,6 @@ void list_visit_items(list_t *l, void (*visitor)(void *v)){
     //printf('hi1');
     list_item_t *current = l->head;
     while(current != NULL){
-        //printf('hi');
         visitor(current->datum);
         current = current->next;
     }
