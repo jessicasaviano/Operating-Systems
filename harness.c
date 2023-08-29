@@ -74,11 +74,13 @@ int main(int argc, char ** argv){
             list_remove_head(singly);
             removed+=1;
             list_visit_items(singly, visit);
+            
+
             if(singly->number == 0){
             printf("<EMPTY>");
+            return 0;
         }
              printf("\n----------\n");
-
 
         }
        
