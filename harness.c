@@ -82,6 +82,7 @@ int main(int argc, char ** argv){
         
         while(fgets(line, 42, file) != NULL) {
             //printf("hi4");
+            // debugging testing line
             //printf("(%s)",line);
             if (line[0] != '\n') {
                 list_insert_tail(singly, line);

@@ -40,7 +40,7 @@ void list_insert_tail(list_t *l, void *v) {
     strcpy(item->datum, (char*)v);
     
     
-    
+
     if(l->head == NULL ){
         l->head = item;
     }
