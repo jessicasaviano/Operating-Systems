@@ -4,4 +4,5 @@ Nikita Jeyasingh - npj5kr
 
 Created a git repository to work on this assignment and future OS programming assignments. We met in person 
 for several hours (attended office hours in Rice as well) and both pushed and pulled code from the repository to make contributions.
- We primarily work together talking through and working on the segments together. 
+ We primarily work together talking through and working on the segments together. Jessica also went to professor OH to understand the 
+ outline of the project, and to udnerstand Malloc.
