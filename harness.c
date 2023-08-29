@@ -86,23 +86,6 @@ int main(int argc, char ** argv){
        
 
        
-        /*
-        if(sizeof(singly) == 2){
-            list_remove_head(singly);
-            list_remove_head(singly);
-            list_visit_items(singly, visit);
-            printf("\n----------\n");
-        }
-        if(sizeof(singly) == 1){
-            list_remove_head(singly);
-            list_visit_items(singly, visit);
-            printf("\n----------\n");
-        }
-
-        if(sizeof(singly) == 0){
-            printf("<EMPTY>");
-        }
-*/
     }
     
 

@@ -38,7 +38,10 @@ void list_insert_tail(list_t *l, void *v) {
     item->next = NULL;
     
     item->datum = (void*)malloc(sizeof(char)*42);
+   
     strcpy(item->datum, (char*)v);
+    
+    
     
     if(l->head == NULL ){
         l->head = item;
