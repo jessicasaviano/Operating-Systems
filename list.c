@@ -66,5 +66,3 @@ void list_remove_head(list_t *l){
 
    
 }
-
-
