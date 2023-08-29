@@ -83,6 +83,7 @@ int main(int argc, char ** argv){
             if(singly->number == 0){
                 printf("\n----------\n");
                 printf("<EMPTY>");
+                printf("\n----------\n");
             return 0;
         }
              printf("\n----------\n");
