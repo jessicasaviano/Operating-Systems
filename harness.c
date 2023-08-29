@@ -89,19 +89,21 @@ int main(int argc, char ** argv){
         }
             //printf("\n done reading file \n");
         int removed = 0;
-        while(singly->number > 0 && removed < 3){
-            list_remove_head(singly);
-            list_remove_head(singly);
-            list_remove_head(singly);
-            removed+=1;
+        while(singly->number > 0){
+            while(removed <3){
+                list_remove_head(singly);
+                removed+=1;
+            }
+            removed = 0;
             list_visit_items(singly, visit);
-
-            if(singly->number == 0){
+            if(singly->number == 0)
                 printf("<EMPTY>");
+            else
+                printf("\n----------\n");
                 
-            return 0;
-        }
-             printf("\n----------\n");
+            
+    
+             
 
         }
     }
