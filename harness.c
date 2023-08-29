@@ -18,7 +18,14 @@ int main(int argc, char ** argv){
     if(strcmp("echo", argv[2])== 0){
         FILE *file = fopen(argv[1], "r");
         char line[41];
-        
+        if(fgets(line, 42, file) == NULL) 
+            printf("<EMPTY>");
+        else{
+           if (line[0] != '\n') {
+                 printf("%s", line);
+             
+            }
+        }
 
         while(fgets(line, 41, file) != NULL  ) {
             if (line[0] != '\n'){
@@ -34,6 +41,14 @@ int main(int argc, char ** argv){
         singly ->head = NULL;
         singly->tail = NULL;
         char line[42];
+        if(fgets(line, 42, file) == NULL) 
+            printf("<EMPTY>");
+        else{
+           if (line[0] != '\n') {
+                list_insert_tail(singly, line);
+             
+            }
+        }
         while(fgets(line, 42, file) != NULL) {
             if (line[0] != '\n') {       
                 list_insert_tail(singly, line);
@@ -54,6 +69,16 @@ int main(int argc, char ** argv){
         singly->tail = NULL;
         char line[42];
         //printf("hi3");
+       if(fgets(line, 42, file) == NULL) 
+            printf("<EMPTY>");
+        else{
+           if (line[0] != '\n') {
+                list_insert_tail(singly, line);
+             
+            }
+        }
+
+
         
         while(fgets(line, 42, file) != NULL) {
             //printf("hi4");
