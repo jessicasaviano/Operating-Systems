@@ -19,7 +19,9 @@ int main(int argc, char ** argv){
         FILE *file = fopen(argv[1], "r");
         char line[41];
         while(fgets(line, 41, file) != NULL  ) {
-            //printf("%s", line);
+            if (line[0] != '\n'){
+            printf("%s", line);
+            }
     }
 
     }
@@ -83,12 +85,6 @@ int main(int argc, char ** argv){
              printf("\n----------\n");
 
         }
-<<<<<<< HEAD
-       
-
-       
-=======
->>>>>>> 0d4d06fa9d5c8c1656cc608d2675474d695ba64f
     }
 }
 
