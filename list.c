@@ -32,7 +32,7 @@ void list_visit_items(list_t *l, void (*visitor)(void *v)){
 }
 //change
 void list_insert_tail(list_t *l, void *v) {
-
+    int number = 0;
     list_item_t *item;
     item = (list_item_t*)malloc(sizeof(list_item_t));
     item->next = NULL;
@@ -47,21 +47,23 @@ void list_insert_tail(list_t *l, void *v) {
         l->tail->next = item;
     }
     l->tail = item;
+
+    l->number+=1;
     
 
 }
 
 void list_remove_head(list_t *l){
-    if(l->head == NULL){
-        printf("empty list");
-    }
-    else {
+    if(l->number != 0){
+        list_item_t *temp = l->head->next;
         free(l->head->datum);
         free(l->head);
-        l->tail = NULL;
+        l->head = temp;
+         l->number -=1;
+        
     }
 
-
+   
 }
 
 

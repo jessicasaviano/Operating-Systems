@@ -67,15 +67,23 @@ int main(int argc, char ** argv){
             //printf(line);
             list_insert_tail(singly, line);
         }
-
-        while(sizeof(singly) >= 3){
+        int removed = 0;
+        while(singly->number > 0 && removed < 3){
             list_remove_head(singly);
-            //list_remove_head(singly);
-            //list_remove_head(singly);
+            list_remove_head(singly);
+            list_remove_head(singly);
+            removed+=1;
             list_visit_items(singly, visit);
-            printf("\n----------\n");
+            if(singly->number == 0){
+            printf("<EMPTY>");
+        }
+             printf("\n----------\n");
+
 
         }
+       
+
+       
         /*
         if(sizeof(singly) == 2){
             list_remove_head(singly);
