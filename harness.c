@@ -39,9 +39,11 @@ int main(int argc, char ** argv){
         char line[42];
         //printf("hi3");
         while(fgets(line, 42, file) != NULL) {
-            //printf("hi4");
+            //printf(strlen(line));
             //printf("(%s)",line);
-            if (line[0] != '\n') {
+            printf(strlen(line));
+            
+            if (line[0] != '\n') {       
                 list_insert_tail(singly, line);
             }
         }
@@ -77,9 +79,10 @@ int main(int argc, char ** argv){
             list_remove_head(singly);
             removed+=1;
             list_visit_items(singly, visit);
-            
+
             if(singly->number == 0){
-            printf("<EMPTY>");
+                printf("\n----------\n");
+                printf("<EMPTY>");
             return 0;
         }
              printf("\n----------\n");
