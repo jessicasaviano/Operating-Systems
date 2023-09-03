@@ -85,6 +85,9 @@ void parse_and_run_command(const std::string &command) {
     else{
 
          for(int i = 0; i < number; i++){
+            if(tokens[i] == "|"){
+                exit(0);
+            }
             
         if (tokens[i] == "<") {
            
@@ -106,52 +109,9 @@ void parse_and_run_command(const std::string &command) {
         }
          }
          //test!
-         //cout << current_input_file<< endl;
-         //cout << current_input_file << endl;
+         cout << current_input_file<< endl;
+         cout << current_output_file << endl;
     }
-
-
-/*        for(int i = 0; i < number; i++){
-            if(tokens[i] == "|"){
-                exit(0);
-
-        }
-            if(tokens[i] == "<" ){
-                if(tokens.size() > 3){
-                    if(tokens[i+2] == ">"){
-                        commands.push_back(tokens[i]);
-
-                }
-                 }
-                else{
-                    if( i == number - 1){
-                    commands.push_back(tokens[i]);
-                 }
-               
-            }
-            }
-           else if(tokens[i] == ">" ){
-               if(tokens.size() > 3){
-                    if(tokens[i+2] == "<"){
-                        commands.push_back(tokens[i]);
-
-                }
-                 }
-                else{
-                    if( i == number - 1){
-                    commands.push_back(tokens[i]);
-                 }
-               
-            }
-            }
-            else{
-                commands.push_back(tokens[i]);
-
-            }
-
-    }
-
-*/
 
     
     if(commands.size() == 0){
@@ -159,9 +119,12 @@ void parse_and_run_command(const std::string &command) {
         cout << command <<":" << " exit status: 255" << endl;
     }
     else{
+        //for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
+        //cout<<*t<<endl;
+    //}
+        
         child_and_IO(commands);
     }
-
 
 
     }
