@@ -7,23 +7,19 @@
 #include <sys/stat.h>
 
 using namespace std;
- void child_and_IO(vector<string> &commands){
+ void child_and_IO(vector<string> &commands, string input, string output){
         int status;
 
     // Convert vector of strings to a vector of char*
-    vector<char*> argv;
-    for (const string& command : commands) {
-        argv.push_back(const_cast<char*>(command.c_str()));
+    vector<char*> execute;
+    for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
+        execute.push_back(const_cast<char*>(command.c_str()));
     }
-    argv.push_back(nullptr);
-
+    execute.push_back(nullptr);
     int pid = fork();
-
     if (pid == 0) {
         // Child process
-        // Execute the command
-        execvp(argv[0], argv.data());
-
+        execlp(execute[0], execute[0], nullptr);
         // If execvp fails
         cerr << "Error: Command not found" << endl;
         exit(1);
@@ -31,13 +27,11 @@ using namespace std;
         // Parent process
         // Wait for the child process to complete
         wait(&status);
-
-        // Check how the command terminated
         if (WIFEXITED(status)) {
-            // The command exited normally
+            // exited normally
             cout << commands[0] << " exit status: " << WEXITSTATUS(status) << endl;
         } else if (WIFSIGNALED(status)) {
-            // The command was terminated by a signal
+            // terminated by signal
             cout << commands[0] << " terminated by signal: " << WTERMSIG(status) << endl;
         }
     } else {
@@ -47,9 +41,6 @@ using namespace std;
 }
 
     
-
-
-
 void parse_and_run_command(const std::string &command) {
     /* TODO: Implement this. */
     /* Note that this is not the correct way to test for the exit command.
@@ -60,8 +51,8 @@ void parse_and_run_command(const std::string &command) {
     std::string token;
     vector<string> input_files;
     vector<string> output_files;
-    string current_input_file;
-    string current_output_file;
+    string current_input_file = "none";
+    string current_output_file = "none ";
     bool redirect_input = false;
     bool redirect_output = false;
 
@@ -123,7 +114,7 @@ void parse_and_run_command(const std::string &command) {
         //cout<<*t<<endl;
     //}
         
-        child_and_IO(commands);
+        child_and_IO(commands, current_input_file, current_output_file);
     }
 
 
