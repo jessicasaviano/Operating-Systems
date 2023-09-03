@@ -129,7 +129,6 @@ void parse_and_run_command(const std::string &command) {
          //cout << current_output_file << endl;
     }
 
-    
     if(commands.size() == 0){
         cerr << "invalid command" << endl;
         cout << command <<":" << " exit status: 255" << endl;
@@ -144,8 +143,15 @@ void parse_and_run_command(const std::string &command) {
 
 
     }
-
-   
+    int main(void) {
+    std::string command;
+    std::cout << "> ";
+    while (std::getline(std::cin, command)) {
+        parse_and_run_command(command);
+        std::cout << "> ";
+    }
+    return 0;
+}
 
     /*example shell, helped me do it all!
     while((s = Getline())! = EOF) {
@@ -176,12 +182,4 @@ void parse_and_run_command(const std::string &command) {
 
 
 
-int main(void) {
-    std::string command;
-    std::cout << "> ";
-    while (std::getline(std::cin, command)) {
-        parse_and_run_command(command);
-        std::cout << "> ";
-    }
-    return 0;
-}
+
