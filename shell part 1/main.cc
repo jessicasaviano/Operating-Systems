@@ -32,37 +32,46 @@ using namespace std;
                 exit(1);
             }
             dup2(in_re, STDIN_FILENO);
-           
+           close(in_re);
         }
         }
 
         if(output != "none"){
             if(!output.empty()){
-            out_re = open(input.c_str(), O_RDWR | O_CLOEXEC, 0666);
+            out_re = open(output.c_str(), O_RDWR | O_CLOEXEC, 0666);
             if(out_re == -1){
                 cerr<< "couldn't open file" << endl;
                 exit(1);
             }
             dup2(out_re, STDOUT_FILENO);
-            
+            close(out_re);
         }
         }
-        execlp(execute[0], execute[0], nullptr);
-        // If execvp fails
-        cerr << "Error: Command not found" << endl;
-        exit(1);
+         execv(execute[0], execute.data());
+        perror(execute[0]);
     } else if (pid > 0) {
         // Parent process
         // Wait for the child process to complete
         wait(&status);
-        if (WIFEXITED(status)) {
+       if (WIFEXITED(status)) {
             // exited normally
             cout << commands[0] << " exit status: " << WEXITSTATUS(status) << endl;
         } 
-    } else {
-        cerr << "Error: Fork failed" << endl;
-        exit(1);
+       
+    } 
+    else {
+            cerr << "ERR: fork failed" << endl;
+            return;
+        }
+         for (char* arg : execute) {
+        if (arg) {
+            free(arg);
+        }
     }
+
+    execute.clear();
+    execute.shrink_to_fit();
+    exit(1);
 }
 
     
@@ -89,13 +98,11 @@ void parse_and_run_command(const std::string &command) {
     int number = tokens.size();
     //start parsing thru
     if(tokens.size() == 0){
-        printf("hey\n");
         return;
     }
     if(tokens[0] == "exit"){
         tokens.clear();
         tokens.shrink_to_fit();
-        printf("hi\n");
         exit(0);
     }
     else{
@@ -140,8 +147,9 @@ void parse_and_run_command(const std::string &command) {
         
         child_and_IO(commands, current_input_file, current_output_file);
     }
-
-
+    
+    tokens.clear();
+    tokens.shrink_to_fit();
     }
     int main(void) {
     std::string command;
