@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <bits/stdc++.h>
 #include <sys/stat.h>
+#include <fcntl.h>
+#include "unistd.h"
 
 using namespace std;
  void child_and_IO(vector<string> &commands, string input, string output){
@@ -13,12 +15,38 @@ using namespace std;
     // Convert vector of strings to a vector of char*
     vector<char*> execute;
     for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
-        execute.push_back(const_cast<char*>(command.c_str()));
+        execute.push_back(strdup(t->c_str()));
     }
     execute.push_back(nullptr);
     int pid = fork();
     if (pid == 0) {
         // Child process
+        //I/O GOES IN CHILD PROCESS, BEFORE PARENT!
+        int in_re = 0;
+        int out_re = 0;
+        if(input != "none"){
+            if(!input.empty()){
+            in_re = open(input.c_str(), O_RDWR | O_CLOEXEC, 0666);
+            if(in_re == -1){
+                cerr<< "couldn't open file" << endl;
+                exit(1);
+            }
+            dup2(in_re, STDIN_FILENO);
+           
+        }
+        }
+
+        if(output != "none"){
+            if(!output.empty()){
+            out_re = open(input.c_str(), O_RDWR | O_CLOEXEC, 0666);
+            if(out_re == -1){
+                cerr<< "couldn't open file" << endl;
+                exit(1);
+            }
+            dup2(out_re, STDOUT_FILENO);
+            
+        }
+        }
         execlp(execute[0], execute[0], nullptr);
         // If execvp fails
         cerr << "Error: Command not found" << endl;
@@ -30,10 +58,7 @@ using namespace std;
         if (WIFEXITED(status)) {
             // exited normally
             cout << commands[0] << " exit status: " << WEXITSTATUS(status) << endl;
-        } else if (WIFSIGNALED(status)) {
-            // terminated by signal
-            cout << commands[0] << " terminated by signal: " << WTERMSIG(status) << endl;
-        }
+        } 
     } else {
         cerr << "Error: Fork failed" << endl;
         exit(1);
@@ -52,7 +77,7 @@ void parse_and_run_command(const std::string &command) {
     vector<string> input_files;
     vector<string> output_files;
     string current_input_file = "none";
-    string current_output_file = "none ";
+    string current_output_file = "none";
     bool redirect_input = false;
     bool redirect_output = false;
 
@@ -100,8 +125,8 @@ void parse_and_run_command(const std::string &command) {
         }
          }
          //test!
-         cout << current_input_file<< endl;
-         cout << current_output_file << endl;
+         //cout << current_input_file<< endl;
+         //cout << current_output_file << endl;
     }
 
     
@@ -122,7 +147,7 @@ void parse_and_run_command(const std::string &command) {
 
    
 
-    /*example shell
+    /*example shell, helped me do it all!
     while((s = Getline())! = EOF) {
         if((pid=fork) == 0){      //child
             //I/O redirection
