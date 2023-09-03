@@ -7,11 +7,46 @@
 #include <sys/stat.h>
 
 using namespace std;
- void child_and_IO(vector<string> &stuff){
-       
-        printf("hi!!");
+ void child_and_IO(vector<string> &commands){
+        int status;
 
+    // Convert vector of strings to a vector of char*
+    vector<char*> argv;
+    for (const string& command : commands) {
+        argv.push_back(const_cast<char*>(command.c_str()));
     }
+    argv.push_back(nullptr);
+
+    int pid = fork();
+
+    if (pid == 0) {
+        // Child process
+        // Execute the command
+        execvp(argv[0], argv.data());
+
+        // If execvp fails
+        cerr << "Error: Command not found" << endl;
+        exit(1);
+    } else if (pid > 0) {
+        // Parent process
+        // Wait for the child process to complete
+        wait(&status);
+
+        // Check how the command terminated
+        if (WIFEXITED(status)) {
+            // The command exited normally
+            cout << commands[0] << " exit status: " << WEXITSTATUS(status) << endl;
+        } else if (WIFSIGNALED(status)) {
+            // The command was terminated by a signal
+            cout << commands[0] << " terminated by signal: " << WTERMSIG(status) << endl;
+        }
+    } else {
+        cerr << "Error: Fork failed" << endl;
+        exit(1);
+    }
+}
+
+    
 
 
 
@@ -23,12 +58,19 @@ void parse_and_run_command(const std::string &command) {
     //get rid of whitespaces and out all content in a vector of strings
     std::istringstream ss(command);
     std::string token;
+    vector<string> input_files;
+    vector<string> output_files;
+    string current_input_file;
+    string current_output_file;
+    bool redirect_input = false;
+    bool redirect_output = false;
+
     std::vector<std::string> tokens;
-    std::vector<std::string> commands;
+    vector<string> commands = vector<string>();
     while(ss >> token){
         tokens.push_back(token);
     }
-    int number = tokens.size() - 1;
+    int number = tokens.size();
     //start parsing thru
     if(tokens.size() == 0){
         printf("hey\n");
@@ -42,16 +84,40 @@ void parse_and_run_command(const std::string &command) {
     }
     else{
 
-        for(int i = 0; i < number; i++){
+         for(int i = 0; i < number; i++){
+            
+        if (tokens[i] == "<") {
+           
+            redirect_input = true;
+        } else if (tokens[i] == ">") {
+            // Output redirection detected
+            redirect_output = true;
+        } else if (redirect_input) {
+            current_input_file = tokens[i];
+            //cout << tokens[i];
+            redirect_input = false;
+        } else if (redirect_output) {
+            // Store the output file
+            current_output_file = tokens[i];
+            redirect_output = false;
+        } else {
+            // Regular command or argument
+            commands.push_back(tokens[i]);
+        }
+         }
+         //test!
+         //cout << current_input_file<< endl;
+         //cout << current_input_file << endl;
+    }
+
+
+/*        for(int i = 0; i < number; i++){
             if(tokens[i] == "|"){
                 exit(0);
 
         }
-        //cout << tokens[i] << "," << endl;
-        //cout << number << "," << endl;
             if(tokens[i] == "<" ){
                 if(tokens.size() > 3){
-                    cout << tokens[i+2];
                     if(tokens[i+2] == ">"){
                         commands.push_back(tokens[i]);
 
@@ -66,7 +132,6 @@ void parse_and_run_command(const std::string &command) {
             }
            else if(tokens[i] == ">" ){
                if(tokens.size() > 3){
-                    cout << tokens[i+2];
                     if(tokens[i+2] == "<"){
                         commands.push_back(tokens[i]);
 
@@ -79,11 +144,15 @@ void parse_and_run_command(const std::string &command) {
                
             }
             }
+            else{
+                commands.push_back(tokens[i]);
+
+            }
 
     }
 
+*/
 
-}
     
     if(commands.size() == 0){
         cerr << "invalid command" << endl;
