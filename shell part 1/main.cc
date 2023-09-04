@@ -13,10 +13,34 @@ using namespace std;
 
 bool invalid_command(vector<string> &command_line){
         //check to see if its ok
-       cout << "HI"<<endl;
+       for (vector<string>::iterator t=command_line.begin(); t!=command_line.end(); ++t) {
+                    //cout<< "c:" << *t<<endl;
+                    }
+            //cout << command_line.size();
+            int num = command_line.size()-1;
 
+            for(int i = 0; i < num; i++){
+                //cout << "now:" << command_line[i]<< endl;
+                //cout << "and:" << command_line[i+1]<< endl;
+                if(command_line[i] == "<"){
+                    //cout << "this:"<< num-1 << endl;
+                    //cout << "that"<< i <f< endl;
+                    if(num - 1 == i ){
+                        return true;
+                    }
+                    else if (i+2 > 0 && i+2 <= num){
+                            if(command_line[i+2] == ">"){
+                                return true;
+                            }
+                    
 
-        return true;
+                    }
+                }
+        
+            }
+        
+
+        return false;
 
 }
 
@@ -111,7 +135,7 @@ void parse_and_run_command(const std::string &command) {
     while(ss >> token){
         tokens.push_back(token);
     }
-    int number = tokens.size();
+    
     //start parsing thru
     if(tokens.size() == 0){
         return;
@@ -123,7 +147,7 @@ void parse_and_run_command(const std::string &command) {
     }
     else{
          if(invalid_command(tokens) != false){
-
+            int number = tokens.size();
             for(int i = 0; i < number; i++){
                 if(tokens[i] == "|"){
                     exit(0);
@@ -149,6 +173,9 @@ void parse_and_run_command(const std::string &command) {
                     commands.push_back(tokens[i]);
                 }
             }
+            for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
+                    cout<<"this:"<<*t<<endl;
+                    }
             child_and_IO(commands, current_input_file, current_output_file);
   
          }
