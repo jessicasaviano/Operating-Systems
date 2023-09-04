@@ -7,30 +7,36 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "unistd.h"
+#include <vector>
+#include <algorithm>
 
 using namespace std;
 
 
 bool invalid_command(vector<string> &command_line){
-        //check to see if its ok
-       for (vector<string>::iterator t=command_line.begin(); t!=command_line.end(); ++t) {
-                    //cout<< "c:" << *t<<endl;
+      /*
+            if(command_line[0] == "<" || command_line[0] == ">" ){
+                    if(command_line.size()> 1){
+                        return true;
                     }
-            //cout << command_line.size();
+                    else{
+                        return false;
+                    }
+            }
+            */
+           
             int num = command_line.size()-1;
+            
 
             for(int i = 0; i < num; i++){
-                //if(command_line[i] == "|"){
-                  //  exit(0);
-                // }
-                 
+              
                 //cout << "now:" << command_line[i]<< endl;
                 //cout << "and:" << command_line[i+1]<< endl;
                 if(command_line[i] == "<"){
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
                     if(num - 1 == i ){
-                        if((num - 1) != "<"){
+                        if(command_line[num - 1] != "<" || command_line[num - 1] != ">") {
                         return true;
                         }
                     }
@@ -42,8 +48,6 @@ bool invalid_command(vector<string> &command_line){
 
                     }
                 }
-            }
-                /*
                 if(command_line[i] == ">"){
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
@@ -58,35 +62,22 @@ bool invalid_command(vector<string> &command_line){
 
                     }
                 }
+           
+
+            }
+         
+        if (std::count(command_line.begin(), command_line.end(), ">") || std::count(command_line.begin(), command_line.end(), ">")){
+            return false;
+                }
+        else{
+            cout << "hi";
+            return true;
+        }
+
         
-            }
-            
-            int j = 2;
-            for(int i = 0; i < num; i++){
-                if(command_line[i] == "<" && command_line[i]== ">"){
-                    j = 2;
-                    
-                }
-                else{
-                    j = 1;
-
-                }
-            }
-            if(j == 1){
-                return true;
-            }
-            else if(j == 2){
-                return false;
-            }
-            */
-
-                
         return false;
 
 }
-
-
-
 
 
 
@@ -95,9 +86,11 @@ bool invalid_command(vector<string> &command_line){
         int status;
     // Convert vector of strings to a vector of char*
     vector<char*> execute;
+    /*
     for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
         execute.push_back(strdup(t->c_str()));
     }
+    */
     execute.push_back(nullptr);
     int pid = fork();
     if (pid == 0) {
@@ -128,6 +121,7 @@ bool invalid_command(vector<string> &command_line){
             close(out_re);
         }
         }
+        cout << "here:" <<execute[0]<<endl;
          execv(execute[0], execute.data());
         perror(execute[0]);
     } else if (pid > 0) {
@@ -157,11 +151,7 @@ bool invalid_command(vector<string> &command_line){
 
     
 void parse_and_run_command(const std::string &command) {
-    /* TODO: Implement this. */
-    /* Note that this is not the correct way to test for the exit command.
-       For example the command "   exit  " should also exit your shell.
-     */
-    //get rid of whitespaces and out all content in a vector of strings
+    
     std::istringstream ss(command);
     std::string token;
     vector<string> input_files;
@@ -214,9 +204,9 @@ void parse_and_run_command(const std::string &command) {
                     commands.push_back(tokens[i]);
                 }
             }
-            for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
-                    cout<<"this:"<<*t<<endl;
-                    }
+            //for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
+              //      cout<<"this:"<<*t<<endl;
+                //    }
             child_and_IO(commands, current_input_file, current_output_file);
   
          }
