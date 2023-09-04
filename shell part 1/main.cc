@@ -9,9 +9,25 @@
 #include "unistd.h"
 
 using namespace std;
+
+
+bool invalid_command(vector<string> &command_line){
+        //check to see if its ok
+       cout << "HI"<<endl;
+
+
+        return true;
+
+}
+
+
+
+
+
+
+
  void child_and_IO(vector<string> &commands, string input, string output){
         int status;
-
     // Convert vector of strings to a vector of char*
     vector<char*> execute;
     for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
@@ -106,48 +122,50 @@ void parse_and_run_command(const std::string &command) {
         exit(0);
     }
     else{
+         if(invalid_command(tokens) != false){
 
-         for(int i = 0; i < number; i++){
-            if(tokens[i] == "|"){
-                exit(0);
-            }
+            for(int i = 0; i < number; i++){
+                if(tokens[i] == "|"){
+                    exit(0);
+                }
+
+            if (tokens[i] == "<") {
             
-        if (tokens[i] == "<") {
-           
-            redirect_input = true;
-        } else if (tokens[i] == ">") {
-            // Output redirection detected
-            redirect_output = true;
-        } else if (redirect_input) {
-            current_input_file = tokens[i];
-            //cout << tokens[i];
-            redirect_input = false;
-        } else if (redirect_output) {
-            // Store the output file
-            current_output_file = tokens[i];
-            redirect_output = false;
-        } else {
-            // Regular command or argument
-            commands.push_back(tokens[i]);
-        }
+                redirect_input = true;
+            } else if (tokens[i] == ">") {
+                // Output redirection detected
+                redirect_output = true;
+            } else if (redirect_input) {
+                current_input_file = tokens[i];
+                //cout << tokens[i];
+                redirect_input = false;
+            } else if (redirect_output) {
+                // Store the output file
+                current_output_file = tokens[i];
+                redirect_output = false;
+            } else {
+            
+                // Regular command or argument
+                    commands.push_back(tokens[i]);
+                }
+            }
+            child_and_IO(commands, current_input_file, current_output_file);
+  
+         }
+         else{
+            cerr << "invalid command" << endl;
+        cout << command <<":" << " exit status: 255" << endl;
+
          }
          //test!
          //cout << current_input_file<< endl;
          //cout << current_output_file << endl;
     }
-
-    if(commands.size() == 0){
-        cerr << "invalid command" << endl;
-        cout << command <<":" << " exit status: 255" << endl;
-    }
-    else{
         //for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
         //cout<<*t<<endl;
     //}
         
-        child_and_IO(commands, current_input_file, current_output_file);
-    }
-    
+        
     tokens.clear();
     tokens.shrink_to_fit();
     }
