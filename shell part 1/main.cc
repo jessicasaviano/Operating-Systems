@@ -20,9 +20,9 @@ bool invalid_command(vector<string> &command_line){
             int num = command_line.size()-1;
 
             for(int i = 0; i < num; i++){
-                 if(command_line[i] == "|"){
-                    exit(0);
-                 }
+                //if(command_line[i] == "|"){
+                  //  exit(0);
+                // }
                  
                 //cout << "now:" << command_line[i]<< endl;
                 //cout << "and:" << command_line[i+1]<< endl;
@@ -30,7 +30,9 @@ bool invalid_command(vector<string> &command_line){
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
                     if(num - 1 == i ){
+                        if((num - 1) != "<"){
                         return true;
+                        }
                     }
                     else if (i+2 > 0 && i+2 <= num){
                             if(command_line[i+2] == ">"){
@@ -40,6 +42,8 @@ bool invalid_command(vector<string> &command_line){
 
                     }
                 }
+            }
+                /*
                 if(command_line[i] == ">"){
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
@@ -56,7 +60,8 @@ bool invalid_command(vector<string> &command_line){
                 }
         
             }
-            int j = 1;
+            
+            int j = 2;
             for(int i = 0; i < num; i++){
                 if(command_line[i] == "<" && command_line[i]== ">"){
                     j = 2;
@@ -73,6 +78,7 @@ bool invalid_command(vector<string> &command_line){
             else if(j == 2){
                 return false;
             }
+            */
 
                 
         return false;
