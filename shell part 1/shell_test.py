@@ -1073,6 +1073,7 @@ def compare_lines(
         while actual_index < len(actual_lines):
             actual_index += 1
             m = pattern.fullmatch(actual_lines[actual_index-1])
+
             if m != None:
                 found_match = True
                 break
@@ -1083,10 +1084,15 @@ def compare_lines(
                     actual_lines[actual_index-1].decode('UTF-8', errors='replace')
                 ))
         if not found_match and actual_index >= len(actual_lines):
-            errors.append('in {}: could not find match for pattern [{}] in {}'.format(
+            
+            errors.append('in {}: could not find match for pattern [{}] in {} found_match = {} actual_index = {} len(actual_lines) = {}'.format(
                 label,
                 expected_line.decode('UTF-8', errors='replace'),
-                list(map(lambda x: x.decode('UTF-8', errors='replace'), actual_lines[prev_index:actual_index]))
+                list(map(lambda x: x.decode('UTF-8', errors='replace'), actual_lines[prev_index:actual_index])),
+                found_match,
+                actual_index,
+                len(actual_lines)
+
             ))
             break
     if not allow_extra_lines and actual_index < len(actual_lines):
