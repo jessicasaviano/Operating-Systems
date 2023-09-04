@@ -70,7 +70,7 @@ bool invalid_command(vector<string> &command_line){
             return false;
                 }
         else{
-            cout << "hi";
+        
             return true;
         }
 
@@ -86,12 +86,17 @@ bool invalid_command(vector<string> &command_line){
         int status;
     // Convert vector of strings to a vector of char*
     vector<char*> execute;
-    /*
+    
     for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
         execute.push_back(strdup(t->c_str()));
     }
-    */
+    
     execute.push_back(nullptr);
+/*
+     for (vector<char*>::iterator t=execute.begin(); t!=execute.end(); ++t) {
+        cout << "Here:" << *t<<endl;
+    }
+    */
     int pid = fork();
     if (pid == 0) {
         // Child process
@@ -121,7 +126,7 @@ bool invalid_command(vector<string> &command_line){
             close(out_re);
         }
         }
-        cout << "here:" <<execute[0]<<endl;
+        
          execv(execute[0], execute.data());
         perror(execute[0]);
     } else if (pid > 0) {
