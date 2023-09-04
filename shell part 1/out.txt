@@ -1,0 +1,217 @@
+python3 shell_test.py
+
+
+Failed test 'trivial command, exit status 0'
+Test input:
+  /bin/true
+  exit
+Actual stdout:
+  > /bin/true exit status: 0
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*/bin/true.*[Ee]xit status: 0.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command, exit status 0 (do not check for command name)'
+Test input:
+  /bin/true
+  exit
+Actual stdout:
+  > /bin/true exit status: 0
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*[Ee]xit status: 0.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command with extra space, exit status 0'
+Test input:
+   /bin/true
+  exit
+Actual stdout:
+  > /bin/true exit status: 0
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*/bin/true.*[Ee]xit status: 0.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command with extra tab, exit status 0'
+Test input:
+  	/bin/true
+  exit
+Actual stdout:
+  > /bin/true exit status: 0
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*[Ee]xit status: 0.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command with extra vertical tab, exit status 0'
+Test input:
+  /bin/true
+  exit
+Actual stdout:
+  > /bin/true exit status: 0
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*[Ee]xit status: 0.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command, exit status 1'
+Test input:
+  /bin/false
+  exit
+Actual stdout:
+  > /bin/false exit status: 1
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > /bin/false.*[Ee]xit status: 1.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command, exit status 1 (do not check for command name)'
+Test input:
+  /bin/false
+  exit
+Actual stdout:
+  > /bin/false exit status: 1
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > .*[Ee]xit status: 1.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
+
+
+Failed test 'trivial command, exit status 2 (check for command name)'
+Test input:
+  test/exit2.sh
+  exit
+Actual stdout:
+  > test/exit2.sh exit status: 1
+  
+Actual stderr:
+  test/exit2.sh: No such file or directory
+  
+Expected stdout regular expression pattern:
+  > test/exit2.sh.*exit status: 2.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find a match for pattern [> test/exit2.sh.*exit status: 2.*] in line [> test/exit2.sh exit status: 1]
+  in stdout: could not find match for pattern [> test/exit2.sh.*exit status: 2.*] in ['> test/exit2.sh exit status: 1']
+  in stderr: unexpected extra output [['test/exit2.sh: No such file or directory']]
+
+
+
+
+
+Failed test 'trivial command, exit status 2 (do not check for command name)'
+Test input:
+  test/exit2.sh
+  exit
+Actual stdout:
+  > test/exit2.sh exit status: 1
+  
+Actual stderr:
+  test/exit2.sh: No such file or directory
+  
+Expected stdout regular expression pattern:
+  > .*exit status: 2.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find a match for pattern [> .*exit status: 2.*] in line [> test/exit2.sh exit status: 1]
+  in stdout: could not find match for pattern [> .*exit status: 2.*] in ['> test/exit2.sh exit status: 1']
+  in stderr: unexpected extra output [['test/exit2.sh: No such file or directory']]
+
+
+
+
+
+Failed test 'trivial command, exit status 1 (check for command name)'
+Test input:
+  /bin/false
+  exit
+Actual stdout:
+  > /bin/false exit status: 1
+  
+Actual stderr:
+  
+Expected stdout regular expression pattern:
+  > /bin/false.*[Ee]xit status: 1.*
+  > 
+Expected stderr regular expression pattern:
+  <empty>
+Errors:
+  in stdout: could not find match for pattern [> ] in []
+
+
+
