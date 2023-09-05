@@ -124,7 +124,7 @@ bool invalid_command(vector<string> &command_line){
 
         if(output != "none"){
             if(!output.empty()){
-            out_re = open(output.c_str(), O_RDWR | O_CLOEXEC, 0666);
+            out_re = open(output.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0666);
             if(out_re == -1){
                 cerr<< "couldn't open file" << endl;
                 exit(1);
