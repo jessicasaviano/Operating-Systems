@@ -1,49 +1,35 @@
-python3 shell_test.py
-
-
-Failed test 'trivial command, exit status 0'
-Test input:
-  /bin/true
-  exit
-Actual stdout:
-  > /bin/true exit status: 0
-  
-Actual stderr:
-  
-Expected stdout regular expression pattern:
-  > .*/bin/true.*[Ee]xit status: 0.*
-  > 
-Expected stderr regular expression pattern:
-  <empty>
-Errors:
-  in stdout: could not find match for pattern [> ] in []
-
-
-
-
-
-Failed test 'trivial command, exit status 0 (do not check for command name)'
-Test input:
-  /bin/true
-  exit
-Actual stdout:
-  > /bin/true exit status: 0
-  
-Actual stderr:
-  
-Expected stdout regular expression pattern:
-  > .*[Ee]xit status: 0.*
-  > 
-Expected stderr regular expression pattern:
-  <empty>
-Errors:
-  in stdout: could not find match for pattern [> ] in []
-
-
-
-
-
-Failed test 'trivial command with extra space, exit status 0'
+> > > > > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> vdnvndfv,dfnv exit status: 0
+> > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> hjkjbnfj exit status: 0
+> > > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> vdnvndfv,dfnv exit status: 0
+> > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> hey exit status: 0
+> > > > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> vdnvndfv,dfnv exit status: 0
+> > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> hjkjbnfj exit status: 0
+> > > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> vdnvndfv,dfnv exit status: 0
+> > > c exit status: 0
+> cdnsbchjds exit status: 0
+> > c exit status: 0
+> ace, exit status 0'
 Test input:
    /bin/true
   exit

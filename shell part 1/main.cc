@@ -16,15 +16,20 @@ using namespace std;
 bool invalid_command(vector<string> &command_line){
 
             int num = command_line.size()-1;
+            //if((command_line[0] == "<" ||command_line[0] == "<")){
+                //cout << "hey"<<endl;
+            //    return true;
+            //}          
             
-
             for(int i = 0; i < num; i++){
               
                 //cout << "now:" << command_line[i]<< endl;
                 //cout << "and:" << command_line[i+1]<< endl;
                 if(command_line[i] == "<"){
+                   
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
+                    
                     if (i+1 > 0 && i+1 <= num){
                             if((command_line[i+1] == ">") || (command_line[i+1] == "<")) {
                                 return false;
@@ -43,6 +48,7 @@ bool invalid_command(vector<string> &command_line){
                     }
                 }
                 if(command_line[i] == ">"){
+                   
                     //cout << "this:"<< num-1 << endl;
                     //cout << "that"<< i <f< endl;
                     if (i+1 > 0 && i+1 <= num){
@@ -63,6 +69,9 @@ bool invalid_command(vector<string> &command_line){
                 }
 
             }
+
+        
+            
          
         if (std::count(command_line.begin(), command_line.end(), ">") || std::count(command_line.begin(), command_line.end(), ">")){
             return false;
@@ -211,6 +220,7 @@ void parse_and_run_command(const std::string &command) {
                     commands.push_back(tokens[i]);
                 }
             }
+            
             //for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
               //      cout<<"this:"<<*t<<endl;
                 //    }
