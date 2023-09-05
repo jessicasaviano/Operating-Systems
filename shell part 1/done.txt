@@ -2,9 +2,9 @@ g++ -Wall -Werror -pedantic -Og -g -std=c++17 -fsanitize=address -fsanitize=unde
 g++ -Wall -Werror -pedantic -Og -g -std=c++17 -fsanitize=address -fsanitize=undefined -D_GLIBCXX_DEBUG -o msh main.o
 python3 shell_test.py
 Sanitizer output (main process) for test fork fails:
-  ==2887492==LeakSanitizer has encountered a fatal error.
-  ==2887492==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1
-  ==2887492==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)
+  ==2888661==LeakSanitizer has encountered a fatal error.
+  ==2888661==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1
+  ==2888661==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)
 
 
 Failed test 'pipe in the end without a command is invalid'
@@ -35,9 +35,9 @@ Actual stdout:
 Actual stderr:
   
 Sanitizer output (main process):
-  ==2888078==LeakSanitizer has encountered a fatal error.
-  ==2888078==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1
-  ==2888078==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)
+  ==2889184==LeakSanitizer has encountered a fatal error.
+  ==2889184==HINT: For debugging, try setting environment variable LSAN_OPTIONS=verbosity=1:log_threads=1
+  ==2889184==HINT: LeakSanitizer does not work under ptrace (strace, gdb, etc)
 Expected stdout regular expression pattern:
   > > 
 Expected stderr regular expression pattern: (extra lines allowed)
