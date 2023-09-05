@@ -11,7 +11,6 @@
 #include <algorithm>
 
 using namespace std;
-
  void child_and_IO(vector<string> &commands, string input, string output){
     int status;
     vector<char*> execute;
@@ -134,7 +133,7 @@ void parse_and_run_command(const std::string &command) {
             }
                 }
             }
-            
+
             if(commands.size() == 0){
                 cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
