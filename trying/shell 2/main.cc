@@ -17,15 +17,12 @@ using namespace std;
     for (vector<string>::iterator t=commands.begin(); t!=commands.end(); ++t) {
         execute.push_back(strdup(t->c_str()));
     }  
-
-    
     execute.push_back(nullptr);
 
     int pid = fork();
     if (pid == 0) {
         // Child process
         //I/O GOES IN CHILD PROCESS, BEFORE PARENT!
-        //WHERE PIPES GET ATTACHED TO INPUT/OUTPUT
         int in_re = 0;
         int out_re = 0;
         if(input != "none"){
@@ -55,7 +52,6 @@ using namespace std;
          execv(execute[0], execute.data());
          perror(execute[0]);
     } else if (pid > 0) {
-        //THIS IS PARENT AND WHERE THE PIPES GET CREATED:
         wait(&status);
             cout << commands[0] << " exit status: " << WEXITSTATUS(status) << endl;
     } 
