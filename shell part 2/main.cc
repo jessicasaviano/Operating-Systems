@@ -25,11 +25,13 @@ void set_fd_cloexec(int * fds){
 
     if (flags == -1) {
         cerr << "ERR: fcntl failed" << endl;
+        exit(1);
  
     }
     flags |= FD_CLOEXEC;
     if (fcntl(*fds, F_SETFD, flags) == -1) {
         cerr << "ERR: fcntl failed" << endl;
+        exit(1);
      
     }
     /*
@@ -46,10 +48,10 @@ void set_fd_cloexec(int * fds){
     */
 }
 
+void IO(vector<string> &commands, string in, string out) {
+   //cout << in << endl;
+   //cout << out << endl;
 
-
-void IO(vector<string> &commands, string input, string output) {
-  
     vector<char*> execute;
     for (vector<string>::iterator t = commands.begin(); t != commands.end(); ++t) {
         execute.push_back(strdup(t->c_str()));
@@ -58,12 +60,12 @@ void IO(vector<string> &commands, string input, string output) {
     execute.push_back(nullptr);
 
         // I/O redirection
-        int in_re = 0;
-        int out_re = 0;
+    int in_re = 0;
+    int out_re = 0;
 
-         if(input != "none"){
-            if (!input.empty()) {
-                in_re = open(input.c_str(), O_RDWR | O_CLOEXEC, 0666);
+         if(in != "none"){
+            if (!in.empty()) {
+                in_re = open(in.c_str(), O_RDWR | O_CLOEXEC, 0666);
                 if (in_re == -1) {
                     cerr << "couldn't open file" << endl;
                     exit(1);
@@ -72,11 +74,10 @@ void IO(vector<string> &commands, string input, string output) {
                 close(in_re);
                 }
             }
-       
 
-       if (output != "none") {
-            if (!output.empty()) {
-                out_re = open(output.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0666);
+       if (out != "none") {
+            if (!out.empty()) {
+                out_re = open(out.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0666);
                 if (out_re == -1) {
                     cerr << "couldn't open file" << endl;
                     exit(1);
@@ -86,12 +87,12 @@ void IO(vector<string> &commands, string input, string output) {
             }
         }
 
-        if (!input.empty()) {
+        if (!out.empty()) {
             dup2(in_re, STDIN_FILENO);
 
         }
 
-        if (!output.empty()) {
+        if (!out.empty()) {
              dup2(out_re, STDOUT_FILENO);
 
         }
@@ -108,8 +109,10 @@ void IO(vector<string> &commands, string input, string output) {
     execute.clear();
     execute.shrink_to_fit();
 }
-void run_pipes(vector<vector<string>> &commands){
-   /* 
+
+
+void run_pipes(vector<vector<string>> &commands, map<int,string> input, map<int,string> output){
+   /*
     for(size_t i = 0; i < commands.size(); i ++){
         //cout << "NEW" << endl;
         for(size_t j = 0; j < commands[i].size(); j++){
@@ -117,50 +120,18 @@ void run_pipes(vector<vector<string>> &commands){
 
         }
     }
-*/
-   
+
+   */
 
     int n = commands.size();
+    string inp;
+    string outp;
     vector<child*> command;
+    //string inp = "none";
+    //string outp = "none";
     for (int i = 0; i < n; i++) {
-        cout << "hi" << endl;
-        int single = commands[i].size();
-        string current_input_file;
-        string current_output_file;
-        for(int j = 0; j < single; j++){
-        if (commands[i][j] == "<") {
-                if(i == single-1){
-                    cerr << "invalid command" << endl;
-                    cout <<"invalid command:" << command[i] <<":" << " exit status: 255" << endl;
-                }
-                else{
-                    if(commands[i][j+1] == "<" ||commands[i][j+1] == ">" ){
-                        cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< command[i] <<":" << " exit status: 255" << endl;
-
-                    }
-                 current_input_file = commands[i][j+1];
-                 i+=1;
-                }
-
-            } else if (commands[i][j] == ">") {
-
-                if(i == single-1){
-                    cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< command[i] <<":" << " exit status: 255" << endl;
-                }
-
-                else{
-                    if(commands[i][j+1] == "<" ||commands[i][j+1] == ">" ){
-                        cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< command[i] <<":" << " exit status: 255" << endl;
-                    }
-   
-                 current_output_file = commands[i][j+1];
-                 i+=1;
-                }
-            }
-        }
+        //cout << "hi" << endl;
+        
             
         child *current = new child();
         command.push_back(current);
@@ -182,16 +153,27 @@ void run_pipes(vector<vector<string>> &commands){
                 dup2(command[i]->fds[1], STDOUT_FILENO);
 
             }
-            IO(commands[i], current_input_file, current_output_file);
+
+        if(!input.empty()){
+            cout << "hi" << endl;
+            auto it = input.find(i);
+            inp = it->second;
+     }
+            
+      if(!output.empty()){
+            auto it2 = output.find(i);
+            outp = it2->second;
+            }
+        else if(!input.empty() && !output.empty()){
+            inp = "none";
+            outp = "none";
+        }    
+
+          IO(commands[i], inp, outp);
+        
         }
 
         else if(pid > 0){
-             if (command[i]->pid > 0) {
-                int status = 0;
-                waitpid(command[i]->pid, &status, 0);
-                close(command[i]->fds[0]);
-                cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
-        }
             command[i]->pid = -1;
             close(command[i]->fds[1]);
           
@@ -199,29 +181,36 @@ void run_pipes(vector<vector<string>> &commands){
 
         else{
             cerr<< "FORK FAILED" << endl;
+            exit(1);
         }
 
         }
 
-
-
-
+        for (int i = 0; i < n; i++) {
+         if (command[i]->pid > 0) {
+                int status = 0;
+                waitpid(command[i]->pid, &status, 0);
+                close(command[i]->fds[0]);
+                cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
+        }
+        }
 
 
 
     }
 
 
-
 void parse_and_run_command(const std::string &command) {
-    map<string, string> IO_map;   
-
+    map<int, string> input_map;   
+    map<int, string> output_map;   
+    string inp = "none";
+    string outp = "none";
     std::istringstream ss(command);
     std::string token;
     vector<string> input_files;
     vector<string> output_files;
-    string current_input_file = "none";
-    string current_output_file = "none";
+    string current = "none";
+    string current1 = "none";
     std::vector<std::string> tokens;
     vector<vector<string>> commands;
     vector<string> single_c = vector<string>();
@@ -241,7 +230,8 @@ void parse_and_run_command(const std::string &command) {
     }
     else{
         
-        
+        int tracking = 0;
+        int tracking2 = 0;
         int number = tokens.size();
         for(int i = 0; i < number; i++){
             if(tokens[i] == "|"){
@@ -252,20 +242,23 @@ void parse_and_run_command(const std::string &command) {
              
 
             } 
-           /*
-
+          
             else if (tokens[i] == "<") {
                 if(i == number-1){
                     cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                    //exit(1);
                 }
                 else{
                     if(tokens[i+1] == "<" ||tokens[i+1] == ">" ){
                         cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                    //exit(1);
 
                     }
-                 current_input_file = tokens[i+1];
+                 current = tokens[i+1];
+                 input_map[tracking] = current;
+                 tracking += 1;
                  i+=1;
                 }
 
@@ -282,12 +275,13 @@ void parse_and_run_command(const std::string &command) {
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
                     }
    
-                 current_output_file = tokens[i+1];
+                 current1 = tokens[i+1];
+                 output_map[tracking2] = current1;
+                 tracking2 += 1;
                  i+=1;
                 }
             }
             
-            */
 
             else{
                     single_c.push_back(tokens[i]);
@@ -304,7 +298,7 @@ void parse_and_run_command(const std::string &command) {
             cout << "Invalid command:" << command << ":" << " exit status: 255" << endl;
         } 
         else{
-            run_pipes(commands);
+            run_pipes(commands, input_map, output_map);
         }
     tokens.clear();
     tokens.shrink_to_fit();
