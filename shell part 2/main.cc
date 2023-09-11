@@ -12,7 +12,7 @@
 
 using namespace std;
 
-void child_and_IO(vector<string> &commands, string input, string output, int pipe_in = -1, int pipe_out = -1) {
+void child_and_IO(vector<string> &commands, string input, string output) {
     int status;
     vector<char*> execute;
     for (vector<string>::iterator t = commands.begin(); t != commands.end(); ++t) {
@@ -28,10 +28,7 @@ void child_and_IO(vector<string> &commands, string input, string output, int pip
         int in_re = 0;
         int out_re = 0;
 
-        if (pipe_in != -1) {
-            dup2(pipe_in, STDIN_FILENO);
-            close(pipe_in);
-        } else if (input != "none") {
+         if(input != "none"){
             if (!input.empty()) {
                 in_re = open(input.c_str(), O_RDWR | O_CLOEXEC, 0666);
                 if (in_re == -1) {
@@ -40,13 +37,11 @@ void child_and_IO(vector<string> &commands, string input, string output, int pip
                 }
                 dup2(in_re, STDIN_FILENO);
                 close(in_re);
+                }
             }
-        }
+       
 
-        if (pipe_out != -1) {
-            dup2(pipe_out, STDOUT_FILENO);
-            close(pipe_out);
-        } else if (output != "none") {
+       if (output != "none") {
             if (!output.empty()) {
                 out_re = open(output.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0666);
                 if (out_re == -1) {
@@ -98,8 +93,6 @@ void parse_and_run_command(const std::string &command) {
 
     std::istringstream ss(command);
     std::string token;
-    int pipe_in = -1;
-    int pipe_out = -1;
     vector<string> input_files;
     vector<string> output_files;
     string current_input_file = "none";
@@ -107,6 +100,8 @@ void parse_and_run_command(const std::string &command) {
     std::vector<std::string> tokens;
     vector<vector<string>> commands;
     vector<string> single_c = vector<string>();
+    int pipe_fds[2];
+   
     
     while(ss >> token){
         tokens.push_back(token);
@@ -128,15 +123,13 @@ void parse_and_run_command(const std::string &command) {
                     commands.push_back(single_c);
                     single_c.clear();
                 }
-                int pipe_fds[2];
-            if (pipe(pipe_fds) == -1) {
-                cerr << "ERR: pipe failed" << endl;
-                exit(1);
-            }
-            pipe_in = pipe_fds[0];
-            pipe_out = pipe_fds[1];
-            set_fd_cloexec(pipe_in);
-            set_fd_cloexec(pipe_out);
+              if (pipe(pipe_fds) == -1) {
+                    cerr << "ERR: pipe failed" << endl;
+                    exit(1);
+                }
+
+               
+           
             } 
            
             else if (tokens[i] == "<") {
@@ -179,39 +172,41 @@ void parse_and_run_command(const std::string &command) {
             if (!single_c.empty()) {
             commands.push_back(single_c);
             }
-            if(commands.size() == 0){
-                cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
 
-            }
-           
-           for (size_t i = 0; i < commands.size(); i++) {
-                cout << "NEW COMMAND" << endl;
-            for(size_t j = 0; j < commands[i].size(); j ++){
-                    cout << commands[i][j] << endl;
-            }
-        // Execute the commands in the pipeline
-        int prev_pipe_out = -1;
-        if (i == commands.size() - 1) {
-            cout << "hi" << endl;
-            // Last command in the pipeline
-            child_and_IO(commands[i], current_input_file, current_output_file, prev_pipe_out, -1);
-        } else if (i == 0) {
-            cout << "hi1" << endl;
-            // First command in the pipeline
-            child_and_IO(commands[i], current_input_file, current_output_file, -1, pipe_out);
+            if (commands.empty()) {
+            cerr << "Invalid command" << endl;
+            cout << "Invalid command:" << command << ":" << " exit status: 255" << endl;
         } else {
-            cout << "hi2" << endl;
-            // Intermediate commands in the pipeline
-            child_and_IO(commands[i], current_input_file, current_output_file, prev_pipe_out, pipe_out);
-        }
-          prev_pipe_out = pipe_out; // Update prev_pipe_out for the next iteration
-    }
+            for (size_t i = 0; i < commands.size(); i++) {
+                if (i < commands.size() - 1) {
+                    // For all commands except the last one in the pipeline, set the output to the write end of the pipe
+                    set_fd_cloexec(pipe_fds[1]);
+                    current_output_file = to_string(pipe_fds[1]); // Use pipe write end as output
+                } else {
+                    // For the last command in the pipeline, set the output to the current output file
+                    current_output_file = current_output_file;
+                }
 
+                if (i > 0) {
+                    // For all commands except the first one in the pipeline, set the input to the read end of the pipe
+                    current_input_file = to_string(pipe_fds[0]); // Use pipe read end as input
+                } else {
+                    // For the first command in the pipeline, set the input to the current input file
+                    current_input_file = current_input_file;
+                }
+
+                child_and_IO(commands[i], current_input_file, current_output_file);
+            }
+        }
+    
+
+          
 
     tokens.clear();
     tokens.shrink_to_fit();
     }
+
+
     int main(void) {
     std::string command;
     std::cout << "> ";
