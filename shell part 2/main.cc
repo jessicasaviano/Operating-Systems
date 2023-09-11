@@ -179,29 +179,13 @@ void parse_and_run_command(const std::string &command) {
         } else {
             for (size_t i = 0; i < commands.size(); i++) {
                 if (i < commands.size() - 1) {
-                    // For all commands except the last one in the pipeline, set the output to the write end of the pipe
-                    set_fd_cloexec(pipe_fds[1]);
-                    current_output_file = to_string(pipe_fds[1]); // Use pipe write end as output
-                } else {
-                    // For the last command in the pipeline, set the output to the current output file
-                    current_output_file = current_output_file;
-                }
-
-                if (i > 0) {
-                    // For all commands except the first one in the pipeline, set the input to the read end of the pipe
-                    current_input_file = to_string(pipe_fds[0]); // Use pipe read end as input
-                } else {
-                    // For the first command in the pipeline, set the input to the current input file
-                    current_input_file = current_input_file;
-                }
-
-                child_and_IO(commands[i], current_input_file, current_output_file);
-            }
+                   child_and_IO(commands[i], current_input_file, current_output_file);
+        
         }
-    
 
+            }
           
-
+        }
     tokens.clear();
     tokens.shrink_to_fit();
     }
