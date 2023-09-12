@@ -142,6 +142,7 @@ void run_pipes(vector<vector<string>> &commands){
     
       
          execv(execute[0], execute.data());
+         cout << "hi";
          perror(execute[0]);
     
     for(char* arg : execute) {
@@ -156,11 +157,9 @@ void run_pipes(vector<vector<string>> &commands){
         
 
         else if(pid > 0){
-            int status;
-            waitpid(command[i]->pid, &status, 0);
             command[i]->pid = pid;
             close(command[i]->fds[1]);
-            //cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
+            
         }
 
         else{
@@ -222,28 +221,28 @@ void parse_and_run_command(const std::string &command) {
         
             else if (tokens[i] == "<") {
                 if(i == number-1 || tokens[number-1] == "|"){
-                    
+                    //cout << "hfffi" << endl;
                 
                     cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
-                    exit(1);
+                    //exit(1);
                    
                 }
                 else{
                     if(tokens[i+1] == "<" ||tokens[i+1] == ">" ){
                         cerr << "invalid command" << endl;
                         cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
-                        exit(1);
+                        //exit(1);
                         
                     }
                  
                 single_c.push_back(tokens[i]);
-                }
+                } 
 
             } else if (tokens[i] == ">") {
 
                 if(i == number-1 || tokens[number-1] == "|"){
-
+                    cout << "hi" << endl;
                     cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
                     
@@ -293,6 +292,7 @@ void parse_and_run_command(const std::string &command) {
 
             run_pipes(commands);
         }
+        
     tokens.clear();
     tokens.shrink_to_fit();
     }
