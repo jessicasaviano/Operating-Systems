@@ -35,6 +35,7 @@ void set_fd_cloexec(int * fds){
         exit(1);
     }
 
+    
 }
 
 // /bin/cat Makefile > output2.txt  | grep msh: then pipe is done
@@ -54,6 +55,8 @@ void run_pipes(vector<vector<string>> &commands){
             exit(1);
         }
         set_fd_cloexec(current->fds);
+       
+    
        
     // pip ein of first is false, pipe out is false for lat, everything else true
         int pid = fork();
@@ -139,6 +142,7 @@ void run_pipes(vector<vector<string>> &commands){
     
       
          execv(execute[0], execute.data());
+         perror(execute[0]);
     
     for(char* arg : execute) {
         if (arg) {
@@ -160,8 +164,8 @@ void run_pipes(vector<vector<string>> &commands){
         }
 
         else{
-            cerr<< "FORK FAILED" << endl;
-            exit(1);
+            cerr << "ERR: fork failed" << endl;
+            return;
         }
 
         }
@@ -173,7 +177,16 @@ void run_pipes(vector<vector<string>> &commands){
             close(command[i]->fds[0]);
             cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
         }
+        
         }
+
+    commands.clear();
+    commands.shrink_to_fit();
+    for (child* ch : command) {
+        delete ch;
+    }
+    command.clear();
+    command.shrink_to_fit();
 
     }
 
@@ -200,25 +213,28 @@ void parse_and_run_command(const std::string &command) {
         int number = tokens.size();
         for(int i = 0; i < number; i++){
             if(tokens[i] == "|"){
-                if(i == number-1){
-                    cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
-                }
+        
                 if (!single_c.empty()) {
                     commands.push_back(single_c);
                     single_c.clear();
                 }
             }   
+        
             else if (tokens[i] == "<") {
-                if(i == number-1){
+                if(i == number-1 || tokens[number-1] == "|"){
+                    
+                
                     cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
-                  
+                    exit(1);
+                   
                 }
                 else{
                     if(tokens[i+1] == "<" ||tokens[i+1] == ">" ){
                         cerr << "invalid command" << endl;
                         cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                        exit(1);
+                        
                     }
                  
                 single_c.push_back(tokens[i]);
@@ -226,25 +242,40 @@ void parse_and_run_command(const std::string &command) {
 
             } else if (tokens[i] == ">") {
 
-                if(i == number-1){
+                if(i == number-1 || tokens[number-1] == "|"){
+
                     cerr << "invalid command" << endl;
                     cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                    
                 }
 
                 else{
                     if(tokens[i+1] == "<" ||tokens[i+1] == ">" ){
                         cerr << "invalid command" << endl;
                         cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                        
                     }
 
                     single_c.push_back(tokens[i]);
                 }
+               
             }
             
 
             else{
                     single_c.push_back(tokens[i]);
                 }
+
+                if(tokens[i] == "|"){
+                    if(i == number - 1){
+                        cerr << "invalid command" << endl;
+                        cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                        exit(0);
+                        
+                    }
+
+                }
+                
                 }
                 }
 
@@ -255,6 +286,7 @@ void parse_and_run_command(const std::string &command) {
             if (commands.empty()) {
                 cerr << "Invalid command" << endl;
                 cout << "Invalid command:" << command << ":" << " exit status: 255" << endl;
+                exit(1);
         } 
             else{
 
