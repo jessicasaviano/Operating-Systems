@@ -11,6 +11,7 @@
         "any": "cpp",
         "system_error": "cpp",
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "complex": "cpp"
     }
 }

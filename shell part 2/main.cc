@@ -14,6 +14,7 @@ using namespace std;
 typedef struct {   
   int fds[2] = {-1, -1};
   int pid = -1;
+  vector<string> c;
 } child;
 
 typedef struct {
@@ -47,6 +48,7 @@ void run_pipes(vector<vector<string>> &commands){
     for (int i = 0; i < n; i++) {
         child *current = new child();
         command.push_back(current);
+
         if (pipe(current->fds) < 0){
             cerr << "pipe error" << endl;
             exit(1);
@@ -59,16 +61,23 @@ void run_pipes(vector<vector<string>> &commands){
      
             //child
             if(i > 0){
+                close(STDIN_FILENO);
                 dup2(command[i-1]->fds[0], STDIN_FILENO);
+                
+
               
             }
 
-            if(i > (n-1)){
+            if(i < (n-1)){
+                close(STDOUT_FILENO);
                 dup2(command[i]->fds[1], STDOUT_FILENO);
                
             }
 
+            
+        
            // I/O redirection
+           
            string in;
            string out;
            int numb = commands[i].size();
@@ -127,9 +136,9 @@ void run_pipes(vector<vector<string>> &commands){
                 dup2(out_re, STDOUT_FILENO);
                 close(out_re);
             }
-
-        // if pipe in if pipe out, add!!
-        execv(execute[0], execute.data());
+    
+      
+         execv(execute[0], execute.data());
     
     for(char* arg : execute) {
         if (arg) {
@@ -145,8 +154,9 @@ void run_pipes(vector<vector<string>> &commands){
         else if(pid > 0){
             int status;
             waitpid(command[i]->pid, &status, 0);
-            command[i]->pid = -1;
+            command[i]->pid = pid;
             close(command[i]->fds[1]);
+            //cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
         }
 
         else{
@@ -156,12 +166,12 @@ void run_pipes(vector<vector<string>> &commands){
 
         }
         
-        for (int i = 0; i < n; i++) {
-         if (command[i]->pid > 0) {
-                int status = 0;
-                waitpid(command[i]->pid, &status, 0);
-                close(command[i]->fds[0]);
-                cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
+    for (int i = 0; i < n; i++) {
+        if (command[i]->pid > 0) {
+            int status = 0;
+            waitpid(command[i]->pid, &status, 0);
+            close(command[i]->fds[0]);
+            cout << commands[i][0] << " exit status: " << WEXITSTATUS(status) << endl;
         }
         }
 
