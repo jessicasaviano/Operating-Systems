@@ -33,19 +33,16 @@ void set_fd_cloexec(int * fds){
         cerr << "ERR: fcntl failed" << endl;
         exit(1);
     }
+
 }
 
 // /bin/cat Makefile > output2.txt  | grep msh: then pipe is done
 
 void run_pipes(vector<vector<string>> &commands){
-    string in;
-    string out;
-    int in_re = 0;
-    int out_re = 0;
-    //bool pipe_in = false;
-    //bool pipe_out = false;
+    
     int n = commands.size();
-   
+    string inp;
+    string outp;
     vector<child*> command;
     for (int i = 0; i < n; i++) {
         child *current = new child();
@@ -55,13 +52,15 @@ void run_pipes(vector<vector<string>> &commands){
             exit(1);
         }
         set_fd_cloexec(current->fds);
+       
     // pip ein of first is false, pipe out is false for lat, everything else true
         int pid = fork();
         if(pid == 0){
-            //child        
+     
+            //child
             if(i > 0){
                 dup2(command[i-1]->fds[0], STDIN_FILENO);
-               
+              
             }
 
             if(i > (n-1)){
@@ -69,36 +68,41 @@ void run_pipes(vector<vector<string>> &commands){
                
             }
 
-          int num = commands[i].size();
-    for(int j = 0; j < num; i++){
-     if(commands[i][j] == "<") {
-        in = commands[i][j+1];
-        i+=1;
-                
+           // I/O redirection
+           string in;
+           string out;
+           int numb = commands[i].size();
+            for (int j = 0; j < numb; j++) {
+                if (commands[i][j] == "<") {
+                    in = commands[i][j + 1];
+                    j++; // Skip the input file name
 
-     } else if(commands[i][j] == ">") {
-            out = commands[i][j+1];
-            i+=1;
-              
-    }
-    }
+                } else if (commands[i][j] == ">") {
+                     out = commands[i][j + 1];
+                    j++; // Skip the output file name
+                }
+            }
 
-    vector<string> real;
-    for(int j = 0; j < num; j++){
-        if(commands[i][j] != "<" && commands[i][j] != ">" && commands[i][j] != in && commands[i][j] != out ){
-            real.push_back(commands[i][j]);
+            vector<string> real;
+            int num1 = commands[i].size();
+
+            for(int j = 0; j < num1; j++){
+                if(commands[i][j] != "<" && commands[i][j] != ">" && commands[i][j] != in && commands[i][j] != out ){
+                    real.push_back(commands[i][j]);
+            }
+
         }
 
-    }
-    
-    vector<char*> execute;
-    for (vector<string>::iterator t = real.begin(); t != real.end(); ++t) {
-        execute.push_back(strdup(t->c_str()));
-    }
-    execute.push_back(nullptr);
-    // I/O redirection
+            vector<char*> execute;
+            for (vector<string>::iterator t = real.begin(); t != real.end(); ++t) {
+                execute.push_back(strdup(t->c_str()));
+            }
+            execute.push_back(nullptr);
 
+            
 
+            int in_re = 0;
+            int out_re = 0;
 
      
     if (!in.empty()) {
@@ -112,28 +116,31 @@ void run_pipes(vector<vector<string>> &commands){
             close(in_re);
                 }
             
+  
         if (!out.empty()) {
             out_re = open(out.c_str(), O_RDWR | O_CREAT | O_TRUNC | O_CLOEXEC, 0666);
             if (out_re == -1) {
                 cerr << "couldn't open file" << endl;
                 exit(1);
                 }
-                cout << "happens" << endl;
+                //cout << "happens" << endl;
                 dup2(out_re, STDOUT_FILENO);
                 close(out_re);
             }
 
-        // if pipe in if pipe out
-        execvp(execute[0], execute.data());
+        // if pipe in if pipe out, add!!
+        execv(execute[0], execute.data());
     
     for(char* arg : execute) {
         if (arg) {
             free(arg);
         }
     }
+
     execute.clear();
-    execute.shrink_to_fit();     
-        }
+    execute.shrink_to_fit();
+}
+        
 
         else if(pid > 0){
             int status;
@@ -183,6 +190,10 @@ void parse_and_run_command(const std::string &command) {
         int number = tokens.size();
         for(int i = 0; i < number; i++){
             if(tokens[i] == "|"){
+                if(i == number-1){
+                    cerr << "invalid command" << endl;
+                    cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
+                }
                 if (!single_c.empty()) {
                     commands.push_back(single_c);
                     single_c.clear();
