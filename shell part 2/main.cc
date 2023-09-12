@@ -84,23 +84,25 @@ void run_pipes(vector<vector<string>> &commands){
            string in;
            string out;
            int numb = commands[i].size();
-
+            bool com = false;
             for (int j = 0; j < numb; j++) {
                 if (commands[i][j] == "<") {
                     in = commands[i][j + 1];
-                    if(in== "test/input.txt" && commands[i][1] == "foo.txt"){
-                        cerr << "invalid command" << endl;
-                    cout <<"invalid command:"<< commands[i][0] <<":" << " exit status: 255" << endl;
-                    exit(1);
-                    }
                     j++; // Skip the input file name
-
                 } else if (commands[i][j] == ">") {
                      out = commands[i][j + 1];
-                  
                     j++; // Skip the output file name
                 }
-            }
+                else{
+                    com = true;
+                }
+                }
+                if(com == false){
+                     cerr << "invalid command" << endl;
+                    cout <<"invalid command:"<< commands[i][0] <<":" << " exit status: 255" << endl;
+                    exit(1);
+                }
+            
 
                 
       
@@ -232,18 +234,13 @@ void parse_and_run_command(const std::string &command) {
         
             else if (tokens[i] == "<") {
                 if(i == number-1 || tokens[number-1] == "|"){
-                    //cout << "hfffi" << endl;
-                    
-                   
-                    string commands = "/bin/false";
                     cerr <<"invalid command" << endl;
-                    cout << commands <<":" << " exit status: 255" << endl;
+                    cout << command <<":" << " exit status: 255" << endl;
                     exit(1);
                    
                 }
                 else{
                     if(tokens[i+1] == "<" ||tokens[i+1] == ">" ){
-                        
                         cerr << "invalid command" << endl;
                         cout <<"invalid command:"<< command <<":" << " exit status: 255" << endl;
                         exit(1);
