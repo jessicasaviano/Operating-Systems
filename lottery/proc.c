@@ -561,7 +561,6 @@ settickets(int number)
 }
 
 
-
 int
 getprocessesinfo(struct processes_info *pi){
   
@@ -592,4 +591,70 @@ getprocessesinfo(struct processes_info *pi){
 
   release(&ptable.lock);
   return pi->num_processes;
+}
+
+// adding lottery scheduling algorithm
+// where does it need
+
+
+
+// given pseudorandom generator from test files given
+
+static unsigned random_seed = 1;
+
+#define RANDOM_MAX ((1u << 31u) - 1u)
+unsigned lcg_parkmiller(unsigned *state)
+{
+    const unsigned N = 0x7fffffff;
+    const unsigned G = 48271u;
+
+    unsigned div = *state / (N / G);  
+    unsigned rem = *state % (N / G); 
+
+    unsigned a = rem * G;       
+    unsigned b = div * (N % G); 
+
+    return *state = (a > b) ? (a - b) : (a + (N - b));
+}
+
+unsigned next_random() {
+    return lcg_parkmiller(&random_seed);
+}
+
+// need to modify the scheduler to select processes based on lottery tickets
+// WILL EVENTUALLY MODIFY THE ACTUAL SCHEDULER FUNCTION - JUST WANTED TO MAKE A NEW ONE FOR THE TIME BEING  
+struct proc *modify_schedule(void) {
+  // setting total tickets to zero - keep track of sum of tickets for all processes
+     struct proc *p;
+    struct cpu *c = mycpu();
+    c->proc = 0;
+  
+    for(;;){
+    // Enable interrupts on this processor.
+    sti();
+
+    // Loop over process table looking for process to run.
+    acquire(&ptable.lock);
+
+
+    int total_tickets = 0;
+    struct proc *chosen_proc = 0;
+    // generating a random ticket
+    int ticket = next_random() % RANDOM_MAX; 
+
+
+// iterating through ptable to find the selected process
+// for each process - add number of tickets to the total number of tickets  
+    for (struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+        if (p->state == RUNNABLE) {
+            total_tickets += p->tickets;
+        }
+            // if the random ticket is < total tickets - then it's selected 
+            if (ticket < total_tickets) {
+                chosen_proc = p;
+                break;
+            }
+        }
+    }
+    return chosen_proc;
 }
