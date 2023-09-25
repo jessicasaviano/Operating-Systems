@@ -7,9 +7,12 @@
 #include "proc.h"
 #include "spinlock.h"
 
+
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
+
 } ptable;
 
 static struct proc *initproc;
@@ -75,7 +78,7 @@ allocproc(void)
 {
   struct proc *p;
   char *sp;
-
+ 
   acquire(&ptable.lock);
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -121,11 +124,13 @@ void
 userinit(void)
 {
   struct proc *p;
+  
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
   p = allocproc();
   
   initproc = p;
+  
   if((p->pgdir = setupkvm()) == 0)
     panic("userinit: out of memory?");
   inituvm(p->pgdir, _binary_initcode_start, (int)_binary_initcode_size);
@@ -146,11 +151,16 @@ userinit(void)
   // run this process. the acquire forces the above
   // writes to be visible, and the lock is also needed
   // because the assignment might not be atomic.
+
+  initproc->tickets = 10; //added
+  
   acquire(&ptable.lock);
 
   p->state = RUNNABLE;
 
   release(&ptable.lock);
+
+  
 }
 
 // Grow current process's memory by n bytes.
@@ -183,11 +193,13 @@ fork(void)
   int i, pid;
   struct proc *np;
   struct proc *curproc = myproc();
-
+  
+  
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
   }
+  np->tickets = curproc->tickets; //added
 
   // Copy process state from proc.
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
@@ -311,6 +323,8 @@ wait(void)
   }
 }
 
+
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -321,6 +335,7 @@ wait(void)
 //      via swtch back to the scheduler.
 void
 scheduler(void)
+//ADD TICKET STUFF HERE!!!!
 {
   struct proc *p;
   struct cpu *c = mycpu();
@@ -531,4 +546,50 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+
+//is this where I should put it ?
+
+//The number of tickets should be inherited by children created via fork (which i set in fork)
+int
+settickets(int number)
+{
+  struct proc *cur = myproc();
+  cur->tickets = number;
+  return 0;
+}
+
+
+
+int
+getprocessesinfo(struct processes_info *pi){
+  
+  pi->num_processes = 1;
+  struct proc *p;
+
+  acquire(&ptable.lock);
+  int zero = 0;
+   pi->num_processes = zero;
+    for(int i = 0; i < NPROC; i++){
+      pi->tickets[i] = zero;
+      pi->pids[i] = zero;
+      pi -> times_scheduled[i] = zero;
+    }
+
+
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if(p->state != UNUSED){
+          pi->num_processes++;
+          pi->pids[pi->num_processes-1] = p->pid;
+          pi->tickets[pi->num_processes-1] = p->tickets;
+          pi -> times_scheduled[pi->num_processes-1] = p->time_scheduled;
+      
+      
+    }
+
+    }
+
+  release(&ptable.lock);
+  return pi->num_processes;
 }
