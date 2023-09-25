@@ -648,7 +648,7 @@ struct proc *modify_schedule(void) {
     for (struct proc *p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
         if (p->state == RUNNABLE) {
             total_tickets += p->tickets;
-        }
+        
             // if the random ticket is < total tickets - then it's selected 
             if (ticket < total_tickets) {
                 chosen_proc = p;
@@ -657,4 +657,5 @@ struct proc *modify_schedule(void) {
         }
     }
     return chosen_proc;
+    }
 }
