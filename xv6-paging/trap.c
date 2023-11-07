@@ -7,7 +7,11 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
+
+
 extern pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc);
+extern int mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm);
+
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -81,32 +85,43 @@ trap(struct trapframe *tf)
   case T_PGFLT: 
     //Get the address using rc2() \\static inline uint type
   {
-    inline uint address = rc2();
+     uint address = PGROUNDDOWN(rcr2());
+     
     //now lets do PTE stuff like part 1
      pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 0);
     //check if page is guard page: presetn but not usable
     if((*pte & PTE_P) && !(*pte & PTE_U)){
       cprintf("guard page");
-    } goto default2;
-
+      goto default2;
+       }
+    
+    int vpn = address >> 12;
+    if(vpn >= myproc()->sz >> 12){
+      cprintf("vpn access out of bounds (1)\n");
+      goto default2;
+    }
   //obtain a free page: take one! use kalloc!
     char *free = kalloc();
     if(free == 0){
       cprintf("free page");
-    } goto default2;
+       goto default2;
+    }
 
   //zero out the pageeee, use memset!
   memset(free,0,PGSIZE);
 
-  //update the page table
-    if(walkpgdir(myproc()->pgdir, (void*)address, 0) == 0){
-      kfree(address);
+  //update the page table, got this next line directly from vm./c
+    if(mappages(myproc()->pgdir, (char*)address, PGSIZE, V2P(free), PTE_W|PTE_U) < 0){
       cprintf("update");
+      kfree(free);
+      
+      goto default2;
 
-    }goto default2;
+    }
 
      // flush!!!
-      switchuvm(myproc());
+      lcr3(V2P(myproc()->pgdir));
+      break;
 
 
     }
