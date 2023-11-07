@@ -7,7 +7,7 @@
 #include "x86.h"
 #include "traps.h"
 #include "spinlock.h"
-
+extern pte_t * walkpgdir(pde_t *pgdir, const void *va, int alloc);
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -77,9 +77,48 @@ trap(struct trapframe *tf)
             cpuid(), tf->cs, tf->eip);
     lapiceoi();
     break;
+  
+  case T_PGFLT: 
+    //Get the address using rc2() \\static inline uint type
+  {
+    inline uint address = rc2();
+    //now lets do PTE stuff like part 1
+     pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 0);
+    //check if page is guard page: presetn but not usable
+    if((*pte & PTE_P) && !(*pte & PTE_U)){
+      cprintf("guard page");
+    } goto default2;
+
+  //obtain a free page: take one! use kalloc!
+    char *free = kalloc();
+    if(free == 0){
+      cprintf("free page");
+    } goto default2;
+
+  //zero out the pageeee, use memset!
+  memset(free,0,PGSIZE);
+
+  //update the page table
+    if(walkpgdir(myproc()->pgdir, (void*)address, 0) == 0){
+      kfree(address);
+      cprintf("update");
+
+    }goto default2;
+
+     // flush!!!
+      switchuvm(myproc());
+
+
+    }
+
+
+
+
+  
 
   //PAGEBREAK: 13
   default:
+  default2:
     if(myproc() == 0 || (tf->cs&3) == 0){
       // In kernel, it must be our mistake.
       cprintf("unexpected trap %d from cpu %d eip %x (cr2=0x%x)\n",
