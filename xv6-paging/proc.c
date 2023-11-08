@@ -176,7 +176,7 @@ growproc(int n)
   if(n > 0){
     //if((sz = allocuvm(curproc->pgdir, sz, sz + n)) == 0)
       //return -1;
-      sz += n; //COMMENTED OUT THIS BC IT CAN STILL SET SZ BUT SHLDNT CREATE PAGE TABLE ENTRIES
+      sz += n; 
 
   } else if(n < 0){
     if((sz = deallocuvm(curproc->pgdir, sz, sz + n)) == 0)

@@ -84,22 +84,31 @@ trap(struct trapframe *tf)
   
   case T_PGFLT: 
     //Get the address using rc2() \\static inline uint type
-  {
+        {
      uint address = PGROUNDDOWN(rcr2());
+     //case w/ trap frame, before u accept the address
+       if((tf->cs & 3) == 0){
+         cprintf(" kernel mode exception, address");
+        goto default2;
+        
+       }
      
+     if(myproc()->sz  <= address || address >= KERNBASE){
+         cprintf("vpn access out of bounds (1)\n");
+        goto default2;
+     }
+     ///wether its outside the size of the process or outside KERNBASE
+
     //now lets do PTE stuff like part 1
-     pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 0);
+     pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 1);
     //check if page is guard page: presetn but not usable
+    
     if((*pte & PTE_P) && !(*pte & PTE_U)){
       cprintf("guard page");
       goto default2;
        }
     
-    int vpn = address >> 12;
-    if(vpn >= myproc()->sz >> 12){
-      cprintf("vpn access out of bounds (1)\n");
-      goto default2;
-    }
+    
   //obtain a free page: take one! use kalloc!
     char *free = kalloc();
     if(free == 0){
@@ -113,16 +122,18 @@ trap(struct trapframe *tf)
   //update the page table, got this next line directly from vm./c
     if(mappages(myproc()->pgdir, (char*)address, PGSIZE, V2P(free), PTE_W|PTE_U) < 0){
       cprintf("update");
-      kfree(free);
+      //kfree(free);
+      freevm(myproc()->pgdir);
       
       goto default2;
 
     }
 
      // flush!!!
+     //switchuvm)
       lcr3(V2P(myproc()->pgdir));
       break;
-
+      
 
     }
 
