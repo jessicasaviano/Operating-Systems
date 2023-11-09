@@ -87,18 +87,20 @@ trap(struct trapframe *tf)
         {
      uint address = PGROUNDDOWN(rcr2());
      //case w/ trap frame, before u accept the address
+      /*
        if((tf->cs & 3) == 0){
          cprintf(" kernel mode exception, address");
         goto default2;
         
        }
+       */
      
      if(myproc()->sz  <= address || address >= KERNBASE){
          cprintf("vpn access out of bounds (1)\n");
         goto default2;
      }
      ///wether its outside the size of the process or outside KERNBASE
-
+    
     //now lets do PTE stuff like part 1
      pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 1);
     //check if page is guard page: presetn but not usable

@@ -559,20 +559,23 @@ getpagetableentry(int pid, int address){
   acquire(&ptable.lock);
   for(curproc = ptable.proc; curproc < &ptable.proc[NPROC]; curproc++){ 
     if(curproc->pid == pid){
-      pte_t* paget;
-      pte_t* pgdir = curproc->pgdir;
+        pte_t* paget;
+        pte_t* pgdir = curproc->pgdir;
      //from vm.c : walkpgdir(pde_t *pgdir, const void *va, int alloc)
-    if(walkpgdir(pgdir, (const void *)(address), 0) == 0){
-    return 0;
+        if(walkpgdir(pgdir, (const void *)(address), 0) == 0){
+          release(&ptable.lock);
+          return 0;
   }
-  else{
-     paget =  walkpgdir(pgdir, (const void *)(address), 0);
+        else{
+          paget =  walkpgdir(pgdir, (const void *)(address), 0);
   }
-  release(&ptable.lock);
-  return *paget;  
+        release(&ptable.lock);
+        return *paget;  
 
     }
   }
+
+    release(&ptable.lock);   
     return 0;
      
     }
