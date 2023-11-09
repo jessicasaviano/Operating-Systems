@@ -103,13 +103,14 @@ trap(struct trapframe *tf)
      pte_t *pte = walkpgdir(myproc()->pgdir, (void*)address, 1);
     //check if page is guard page: presetn but not usable
     
-    if((*pte & PTE_P) && !(*pte & PTE_U)){
+    if(((*pte & PTE_P) && !(*pte & PTE_U))&& pte != 0){
       cprintf("guard page");
       goto default2;
        }
     
     
   //obtain a free page: take one! use kalloc!
+ 
     char *free = kalloc();
     if(free == 0){
       cprintf("free page");
@@ -131,11 +132,11 @@ trap(struct trapframe *tf)
 
      // flush!!!
      //switchuvm)
-      lcr3(V2P(myproc()->pgdir));
+      switchuvm(myproc());
       break;
       
 
-    }
+        }
 
 
 
