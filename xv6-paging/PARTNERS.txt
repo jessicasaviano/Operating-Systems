@@ -1,0 +1,8 @@
+Jessica Saviano - jrs5xrw
+Nikita Jeyasingh - npj5kr
+
+
+Created a git repository to work on OS programming assignments and have individual folders
+ for each assignment. We met in person for several hours (attended office hours in Rice as well) and 
+ both pushed and pulled code from the repository to make contributions. 
+We primarily work together talking through and working on the segments together. 

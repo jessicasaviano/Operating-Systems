@@ -190,6 +190,7 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_writecount\
+	_setwritecount\
 	_shutdown\
 		
 

@@ -5,20 +5,10 @@ _pp_suite:     file format elf32-i386
 Disassembly of section .text:
 
 00000000 <_get_guard>:
-#include "mmu.h"
-#include "fcntl.h"
-
-//#define DEBUG
-#define MAYBE_UNUSED __attribute__((unused))
-#define EXEC_TEST_PTE_VALUES 16
        0:	b8 ff 0f 00 00       	mov    $0xfff,%eax
-#define MAX_COW_FORKS 4
        5:	f7 d0                	not    %eax
-#define NUM_COW_REGIONS 1
        7:	21 e0                	and    %esp,%eax
-
        9:	2d 00 10 00 00       	sub    $0x1000,%eax
-// for test development: #define ALLOC_CHECK
        e:	c3                   	ret    
 
 0000000f <clear_saved_ppns>:

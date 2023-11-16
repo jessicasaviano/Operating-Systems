@@ -102,3 +102,15 @@ int sys_shutdown(void)
   shutdown();
   return 0;
 }
+
+
+int
+sys_setwritecount(void)
+{
+  int newnum;
+  
+  if(argint(0, &newnum) < 0)
+    return -1;
+  setwritecount(newnum);
+  return 0;
+}

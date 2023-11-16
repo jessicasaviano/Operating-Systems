@@ -32,4 +32,5 @@ SYSCALL(uptime)
 SYSCALL(yield)
 SYSCALL(shutdown)
 SYSCALL(writecount)
+SYSCALL(setwritecount)
 

@@ -10314,7 +10314,7 @@ trap(struct trapframe *tf)
 801050e9:	83 e8 0e             	sub    $0xe,%eax
 801050ec:	83 f8 31             	cmp    $0x31,%eax
 801050ef:	0f 87 9a 01 00 00    	ja     8010528f <trap+0x1ba>
-801050f5:	ff 24 85 30 74 10 80 	jmp    *-0x7fef8bd0(,%eax,4)
+801050f5:	ff 24 85 14 74 10 80 	jmp    *-0x7fef8bec(,%eax,4)
     if(myproc()->killed)
 801050fc:	e8 19 e1 ff ff       	call   8010321a <myproc>
 80105101:	83 78 24 00          	cmpl   $0x0,0x24(%eax)
@@ -10399,7 +10399,7 @@ trap(struct trapframe *tf)
 801051b2:	0f b7 f6             	movzwl %si,%esi
 801051b5:	56                   	push   %esi
 801051b6:	50                   	push   %eax
-801051b7:	68 94 73 10 80       	push   $0x80107394
+801051b7:	68 78 73 10 80       	push   $0x80107378
 801051bc:	e8 46 b4 ff ff       	call   80100607 <cprintf>
     lapiceoi();
 801051c1:	e8 e2 d1 ff ff       	call   801023a8 <lapiceoi>
@@ -10498,7 +10498,7 @@ rcr2(void)
     }
 
      // flush!!!
-     //switchuvm)
+     //switchuvm
       switchuvm(myproc());
 8010526c:	e8 a9 df ff ff       	call   8010321a <myproc>
 80105271:	83 ec 0c             	sub    $0xc,%esp
@@ -10507,7 +10507,7 @@ rcr2(void)
       break;
 8010527a:	83 c4 10             	add    $0x10,%esp
 8010527d:	eb 7b                	jmp    801052fa <trap+0x225>
-         cprintf("vpn access out of bounds (1)\n");
+         cprintf("oob\n");
 8010527f:	83 ec 0c             	sub    $0xc,%esp
 80105282:	68 52 73 10 80       	push   $0x80107352
 80105287:	e8 7b b3 ff ff       	call   80100607 <cprintf>
@@ -10552,7 +10552,7 @@ rcr2(void)
 801052da:	56                   	push   %esi
 801052db:	ff 75 d8             	push   -0x28(%ebp)
 801052de:	ff 70 10             	push   0x10(%eax)
-801052e1:	68 ec 73 10 80       	push   $0x801073ec
+801052e1:	68 d0 73 10 80       	push   $0x801073d0
 801052e6:	e8 1c b3 ff ff       	call   80100607 <cprintf>
             tf->err, cpuid(), tf->eip, rcr2());
     myproc()->killed = 1;
@@ -10611,14 +10611,14 @@ rcr2(void)
 80105363:	c3                   	ret    
       cprintf("guard page");
 80105364:	83 ec 0c             	sub    $0xc,%esp
-80105367:	68 70 73 10 80       	push   $0x80107370
+80105367:	68 57 73 10 80       	push   $0x80107357
 8010536c:	e8 96 b2 ff ff       	call   80100607 <cprintf>
       goto default2;
 80105371:	83 c4 10             	add    $0x10,%esp
 80105374:	e9 16 ff ff ff       	jmp    8010528f <trap+0x1ba>
       cprintf("free page");
 80105379:	83 ec 0c             	sub    $0xc,%esp
-8010537c:	68 7b 73 10 80       	push   $0x8010737b
+8010537c:	68 62 73 10 80       	push   $0x80107362
 80105381:	e8 81 b2 ff ff       	call   80100607 <cprintf>
        goto default2;
 80105386:	83 c4 10             	add    $0x10,%esp
@@ -10629,7 +10629,7 @@ rcr2(void)
 80105396:	e8 ad af ff ff       	call   80100348 <panic>
       cprintf("update");
 8010539b:	83 ec 0c             	sub    $0xc,%esp
-8010539e:	68 85 73 10 80       	push   $0x80107385
+8010539e:	68 6c 73 10 80       	push   $0x8010736c
 801053a3:	e8 5f b2 ff ff       	call   80100607 <cprintf>
       freevm(myproc()->pgdir);
 801053a8:	e8 6d de ff ff       	call   8010321a <myproc>
@@ -10648,11 +10648,11 @@ rcr2(void)
 801053cf:	56                   	push   %esi
 801053d0:	50                   	push   %eax
 801053d1:	ff 73 30             	push   0x30(%ebx)
-801053d4:	68 b8 73 10 80       	push   $0x801073b8
+801053d4:	68 9c 73 10 80       	push   $0x8010739c
 801053d9:	e8 29 b2 ff ff       	call   80100607 <cprintf>
       panic("trap");
 801053de:	83 c4 14             	add    $0x14,%esp
-801053e1:	68 8c 73 10 80       	push   $0x8010738c
+801053e1:	68 73 73 10 80       	push   $0x80107373
 801053e6:	e8 5d af ff ff       	call   80100348 <panic>
     exit();
 801053eb:	e8 b9 e1 ff ff       	call   801035a9 <exit>
@@ -10782,7 +10782,7 @@ uartgetc(void)
 801054f4:	e8 68 ca ff ff       	call   80101f61 <ioapicenable>
   for(p="xv6...\n"; *p; p++)
 801054f9:	83 c4 10             	add    $0x10,%esp
-801054fc:	bb f8 74 10 80       	mov    $0x801074f8,%ebx
+801054fc:	bb dc 74 10 80       	mov    $0x801074dc,%ebx
 80105501:	eb 12                	jmp    80105515 <uartinit+0x94>
     uartputc(*p);
 80105503:	83 ec 0c             	sub    $0xc,%esp
@@ -13694,7 +13694,7 @@ mappages(pde_t *pgdir, void *va, uint size, uint pa, int perm)
 8010631a:	eb cb                	jmp    801062e7 <mappages+0x28>
       panic("remap");
 8010631c:	83 ec 0c             	sub    $0xc,%esp
-8010631f:	68 00 75 10 80       	push   $0x80107500
+8010631f:	68 e4 74 10 80       	push   $0x801074e4
 80106324:	e8 1f a0 ff ff       	call   80100348 <panic>
       return -1;
 80106329:	b8 ff ff ff ff       	mov    $0xffffffff,%eax
@@ -13854,15 +13854,15 @@ switchuvm(struct proc *p)
 801064a1:	c3                   	ret    
     panic("switchuvm: no process");
 801064a2:	83 ec 0c             	sub    $0xc,%esp
-801064a5:	68 06 75 10 80       	push   $0x80107506
+801064a5:	68 ea 74 10 80       	push   $0x801074ea
 801064aa:	e8 99 9e ff ff       	call   80100348 <panic>
     panic("switchuvm: no kstack");
 801064af:	83 ec 0c             	sub    $0xc,%esp
-801064b2:	68 1c 75 10 80       	push   $0x8010751c
+801064b2:	68 00 75 10 80       	push   $0x80107500
 801064b7:	e8 8c 9e ff ff       	call   80100348 <panic>
     panic("switchuvm: no pgdir");
 801064bc:	83 ec 0c             	sub    $0xc,%esp
-801064bf:	68 31 75 10 80       	push   $0x80107531
+801064bf:	68 15 75 10 80       	push   $0x80107515
 801064c4:	e8 7f 9e ff ff       	call   80100348 <panic>
         panic("V2P on address < KERNBASE "
 801064c9:	83 ec 0c             	sub    $0xc,%esp
@@ -13925,7 +13925,7 @@ inituvm(pde_t *pgdir, char *init, uint sz)
 80106539:	c3                   	ret    
     panic("inituvm: more than a page");
 8010653a:	83 ec 0c             	sub    $0xc,%esp
-8010653d:	68 45 75 10 80       	push   $0x80107545
+8010653d:	68 29 75 10 80       	push   $0x80107529
 80106542:	e8 01 9e ff ff       	call   80100348 <panic>
         panic("V2P on address < KERNBASE "
 80106547:	83 ec 0c             	sub    $0xc,%esp
@@ -13955,13 +13955,13 @@ loaduvm(pde_t *pgdir, char *addr, struct inode *ip, uint offset, uint sz)
 80106569:	74 43                	je     801065ae <loaduvm+0x5a>
     panic("loaduvm: addr must be page aligned");
 8010656b:	83 ec 0c             	sub    $0xc,%esp
-8010656e:	68 e8 75 10 80       	push   $0x801075e8
+8010656e:	68 cc 75 10 80       	push   $0x801075cc
 80106573:	e8 d0 9d ff ff       	call   80100348 <panic>
   for(i = 0; i < sz; i += PGSIZE){
     if((pte = walkpgdir(pgdir, addr+i, 0)) == 0)
       panic("loaduvm: address should exist");
 80106578:	83 ec 0c             	sub    $0xc,%esp
-8010657b:	68 5f 75 10 80       	push   $0x8010755f
+8010657b:	68 43 75 10 80       	push   $0x80107543
 80106580:	e8 c3 9d ff ff       	call   80100348 <panic>
     pa = PTE_ADDR(*pte);
     if(sz - i < PGSIZE)
@@ -14184,7 +14184,7 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 80106739:	eb 6c                	jmp    801067a7 <allocuvm+0xf6>
       cprintf("allocuvm out of memory\n");
 8010673b:	83 ec 0c             	sub    $0xc,%esp
-8010673e:	68 7d 75 10 80       	push   $0x8010757d
+8010673e:	68 61 75 10 80       	push   $0x80107561
 80106743:	e8 bf 9e ff ff       	call   80100607 <cprintf>
       deallocuvm(pgdir, newsz, oldsz);
 80106748:	83 c4 0c             	add    $0xc,%esp
@@ -14202,7 +14202,7 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 8010676b:	e8 d8 9b ff ff       	call   80100348 <panic>
       cprintf("allocuvm out of memory (2)\n");
 80106770:	83 ec 0c             	sub    $0xc,%esp
-80106773:	68 95 75 10 80       	push   $0x80107595
+80106773:	68 79 75 10 80       	push   $0x80107579
 80106778:	e8 8a 9e ff ff       	call   80100607 <cprintf>
       deallocuvm(pgdir, newsz, oldsz);
 8010677d:	83 c4 0c             	add    $0xc,%esp
@@ -14258,7 +14258,7 @@ freevm(pde_t *pgdir)
 801067d6:	eb 21                	jmp    801067f9 <freevm+0x47>
     panic("freevm: no pgdir");
 801067d8:	83 ec 0c             	sub    $0xc,%esp
-801067db:	68 b1 75 10 80       	push   $0x801075b1
+801067db:	68 95 75 10 80       	push   $0x80107595
 801067e0:	e8 63 9b ff ff       	call   80100348 <panic>
     return (char*)a + KERNBASE;
 801067e5:	05 00 00 00 80       	add    $0x80000000,%eax
@@ -14397,7 +14397,7 @@ clearpteu(pde_t *pgdir, char *uva)
 801068d7:	c3                   	ret    
     panic("clearpteu");
 801068d8:	83 ec 0c             	sub    $0xc,%esp
-801068db:	68 c2 75 10 80       	push   $0x801075c2
+801068db:	68 a6 75 10 80       	push   $0x801075a6
 801068e0:	e8 63 9a ff ff       	call   80100348 <panic>
 
 801068e5 <copyuvm>:
@@ -14430,7 +14430,7 @@ copyuvm(pde_t *pgdir, uint sz)
     if((pte = walkpgdir(pgdir, (void *) i, 0)) == 0)
       panic("copyuvm: pte should exist");
 80106905:	83 ec 0c             	sub    $0xc,%esp
-80106908:	68 cc 75 10 80       	push   $0x801075cc
+80106908:	68 b0 75 10 80       	push   $0x801075b0
 8010690d:	e8 36 9a ff ff       	call   80100348 <panic>
 80106912:	83 ec 0c             	sub    $0xc,%esp
 80106915:	68 58 70 10 80       	push   $0x80107058

@@ -96,7 +96,7 @@ trap(struct trapframe *tf)
        */
      
      if(myproc()->sz  <= address || address >= KERNBASE){
-         cprintf("vpn access out of bounds (1)\n");
+         cprintf("oob\n");
         goto default2;
      }
      ///wether its outside the size of the process or outside KERNBASE
@@ -125,7 +125,7 @@ trap(struct trapframe *tf)
   //update the page table, got this next line directly from vm./c
     if(mappages(myproc()->pgdir, (char*)address, PGSIZE, V2P(free), PTE_W|PTE_U) < 0){
       cprintf("update");
-      //kfree(free);
+  
       freevm(myproc()->pgdir);
       
       goto default2;
@@ -133,7 +133,7 @@ trap(struct trapframe *tf)
     }
 
      // flush!!!
-     //switchuvm)
+     //switchuvm
       switchuvm(myproc());
       break;
       

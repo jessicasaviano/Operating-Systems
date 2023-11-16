@@ -1,4 +1,5 @@
 // Per-CPU state
+extern int counter;
 struct cpu {
   uchar apicid;                // Local APIC ID
   struct context *scheduler;   // swtch() here to enter scheduler
