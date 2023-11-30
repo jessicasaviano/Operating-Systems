@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <assert.h>
 #include "inode.h"
+#include <string.h>
 #define uint unsigned int
 
 //-create is like making a new "tool box" (IMAGE FILE), and putting your first tool ina specific part of the box (ike inode in block D at position I)
@@ -49,11 +50,22 @@ int get_free_block()
   //return blockno;
 }
 
-void write_int(int pos, uint val)
+void write_block(int pos, unsigned char *val, size_t sizen)
 {
-  int *ptr = (uint*)&rawdata[pos];
-  *ptr = val;
+  if (pos < 0 || pos >= TOTAL_BLOCKS * BLOCK_SZ) {
+        fprintf(stderr, "Invalid position: %d\n", pos);
+        exit(-1);
+    }
+
+    if (sizen > BLOCK_SZ || pos + sizen > TOTAL_BLOCKS * BLOCK_SZ) {
+        fprintf(stderr, "Data size exceeds block size or goes beyond filesystem bounds\n");
+        exit(-1);
+    }
+
+    // Copying data to the specified position
+    memcpy(&rawdata[pos], val, sizen);
 }
+
 
 /*
 void read_int(int pos)
@@ -69,15 +81,21 @@ void read_int(int pos)
 void place_file(char *file, int uid, int gid, uint inode_position, uint block_pos_inode)
 {
  int blockno;
-  int i, nbytes = 0;
-  int i2block_index, i3block_index;
-  struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];;
+  int i;
+  //nbytes = 0;
+  //int i2block_index, i3block_index;
+  struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];
+  printf("uid = %d\n", block_pos_inode);
+  printf("guid = %d\n", inode_position);
+
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
   ip->mode = 0;
   ip->nlink = 1;
   ip->uid = uid;
   ip->gid = gid;
+  printf("uid = %d\n", uid);
+  printf("guid = %d\n", gid);
   ip->ctime = 1; //?
   ip->mtime = 1; //?
   ip->atime = 1; //?
@@ -208,22 +226,101 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
     printf("Successfully wrote %d bytes of file %s\n", ip->size, file);
 }
 
+int is_inode_block(int blockno) {
+    return blockno < INODE_BLOCKS;
+}
+
+void traversing_inode_construct_file(struct inode *ip, const char *output_path, unsigned char *disk_image, int block_num){
+   
+  FILE *output_file = fopen(output_path, "wb");
+    if (!output_file) {
+        perror("Failed to open output file");
+        exit(EXIT_FAILURE);
+    }
+
+     
+    // Handle direct blocks
+    for (int i = 0; i < N_DBLOCKS; i++) {
+        if (ip->dblocks[i] != 0) {
+            fwrite(disk_image + ip->dblocks[i] * BLOCK_SZ, BLOCK_SZ, 1, output_file);
+        }
+    }
+   
+    fprintf(stderr, "Usage: disk_image -c\n");
+printf("file found at inode in block %d, file size %u\n", block_num, ip->size);
+ fclose(output_file);
+}
+
+
+
 void obtain_inode_for_extraction(const char *image_filename, uint uid, uint gid, const char *output_path){
+     /*
      FILE *image_file = fopen(image_filename, "rb");
     if (!image_file) {
         perror("Failed to open image file");
         exit(EXIT_FAILURE);
     }
 
-    unsigned char *disk_image = (unsigned char *)malloc(TOTAL_BLOCKS * BLOCK_SZ);
-    fread(disk_image, BLOCK_SZ, TOTAL_BLOCKS, image_file);
+    unsigned char *disk_image = (unsigned char *)malloc(10 * BLOCK_SZ);
+    fread(disk_image, BLOCK_SZ, 10, image_file);
+    fclose(image_file);
+ 
+
+    for (int blockno = 0; blockno < 10; blockno++) {
+     
+        struct inode *ip = (struct inode *)(disk_image + blockno * BLOCK_SZ);
+   
+        for (int i = 0; i < INODES_PER_BLOCK; i++) {
+            printf("iud = %d\n",ip->uid);
+            printf("gid = %d\n",ip[i].gid);
+            if (ip[i].uid == uid && ip[i].gid == gid) { // looking at every inode and mlink for 0 and not 0
+                  fprintf(stderr, "Usage: disk_imagcdcdsc dfvdgdfe -c\n");
+                traversing_inode_construct_file(&ip[i], output_path, disk_image, blockno);
+                
+            }
+        }
+    }
+     
+   //fprintf(stderr, "Usage: disk_image -create or -insert\n");
+    
+    free(disk_image);
+    */
+      FILE *image_file = fopen(image_filename, "rb");
+    if (!image_file) {
+        perror("Failed to open image file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Dynamically determine the size of the file
+    fseek(image_file, 0, SEEK_END);
+    long file_size = ftell(image_file);
+    fseek(image_file, 0, SEEK_SET);
+
+    // Allocate memory for the entire disk image
+    unsigned char *disk_image = (unsigned char *)malloc(file_size);
+    if (!disk_image) {
+        perror("Memory allocation failed");
+        fclose(image_file);
+        exit(EXIT_FAILURE);
+    }
+
+    // Read the entire disk image into memory
+    fread(disk_image, 1, file_size, image_file);
     fclose(image_file);
 
-    for (int blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
-        struct inode *ip = (struct inode *)(disk_image + blockno * BLOCK_SZ);
-        for (int i = 0; i < INODES_PER_BLOCK; i++) {
-            if (ip[i].uid == uid && ip[i].gid == gid) {
-                traversing_inode(&ip[i], output_path, disk_image, blockno);
+    // Iterate over each block
+    for (int blockno = 0; blockno < file_size / BLOCK_SZ; blockno++) {
+        printf("iud = %d\n",ip->uid);
+        // Assuming a function to check if a block is an inode block
+        if (is_inode_block(blockno)) {
+            struct inode *ip = (struct inode *)(disk_image + blockno * BLOCK_SZ);
+            printf("iud = %d\n",ip->uid);
+            printf("gid = %d\n",ip[blockno].gid);
+            for (int i = 0; i < INODES_PER_BLOCK; i++) {
+                if (ip[i].uid == uid && ip[i].gid == gid) {
+                    traversing_inode_construct_file(&ip[i], output_path, disk_image, blockno);
+                    printf("file found at inode in block %d, file size %u\n", blockno, ip[i].size);
+                }
             }
         }
     }
@@ -233,23 +330,22 @@ void obtain_inode_for_extraction(const char *image_filename, uint uid, uint gid,
 
 
 
-void traversing_inode_cnstruct_file(struct inode *ip, const char *output_path, unsigned char *disk_image, int inode_byte_position){
-
-}
 
 
 
 
-void main(int argc, char **argv) // add argument handling
+int main(int argc, char **argv) // add argument handling
 {
-   int i;
-  FILE *outfile;
-  if (strcmp(argv[1], "-create") == 0 ) {
+   //int i;
+  //FILE *outfile;
+  if (strcmp(argv[1], "-create") == 0  || strcmp(argv[1], "-insert") == 0 ) {
+    
   if (argc != 18) {
-        fprintf(stderr, "Usage: disk_image -create -image IMAGE_FILE -nblocks N -iblocks M -inputfile FILE -u UID -g GID -block D -inodepos I\n");
-        return 1;
+        fprintf(stderr, "Usage: disk_image -create or -insert\n");
+        exit(-1);
     }
-    uint N, M, D, I, UID, GID;
+    int N, M, D, I, UID, GID;
+    
     const char *in_filename, *image_filename;
     uint i;
     for (i = 2; i < 17; ++i) {
@@ -270,10 +366,16 @@ void main(int argc, char **argv) // add argument handling
       } else if (strcmp(argv[i], "-inodepos") == 0) {
         I = atoi(argv[i+1]);
       } 
+
+  
+//printf("I = %u\n", I);
+//printf("INODES_PER_BLOCK = %lu\n", INODES_PER_BLOCK);
     }
+       printf("UID = %x\n", UID);
+      printf("GID = %x\n", GID);
          if (D >= M || I >= INODES_PER_BLOCK) {
         fprintf(stderr, "Invalid inode block or position\n");
-        return EXIT_FAILURE;
+        exit(-1);
     }
 
     TOTAL_BLOCKS = N;
@@ -308,14 +410,55 @@ void main(int argc, char **argv) // add argument handling
 
     fclose(outfile);
     free(rawdata);
-
-  i = fclose(outfile);
-  if (i) {
-    perror("datafile close");
-    exit(-1);
+    printf("Done.\n");
+  exit(0);
   }
 
+  if(strcmp(argv[1], "-extract") == 0){
+    
+     
+    if (argc != 10) {
+        fprintf(stderr, "Usage: -extract\n");
+        exit(-1);
+    }
+
+    int UID, GID;
+    const char *image_filename, *PATH;
+    uint i;
+    for (i = 2; i < 9; ++i) {
+      if (strcmp(argv[i], "-image") == 0) {
+        image_filename = argv[i+1];
+        printf("D = %s\n", image_filename);
+      
+      } else if (strcmp(argv[i], "-u") == 0) {
+        UID = atoi(argv[i+1]); 
+        printf("D = %x\n", UID);
+      } else if (strcmp(argv[i], "-g") == 0) {
+        GID = atoi(argv[i+1]);
+        printf("D = %x\n", GID);
+      }else if (strcmp(argv[i], "-o") == 0) {
+        PATH = argv[i+1];
+        printf("D = %s\n", PATH);
+      }
+
+    }
+
+      if (!image_filename) {
+            fprintf(stderr, "Missing required arguments for -extract\n");
+            exit(-1);
+        }
+
+      obtain_inode_for_extraction(image_filename, UID, GID, (char *)PATH);
+   
+
+  }
+ 
   printf("Done.\n");
-  return;
-  }
+  exit(0);
+  
+
+
+
+
+
 }
