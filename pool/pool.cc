@@ -1,9 +1,13 @@
 #include "pool.h"
 
 Task::Task() {
+    pthread_cond_init(&finished, nullptr);
+    pthread_mutex_init(&lockit, nullptr);
 }
 
 Task::~Task() {
+     pthread_cond_destroy(&finished);
+    pthread_mutex_destroy(&lockit);
 }
 
 
@@ -29,14 +33,16 @@ void* ThreadPool::threadhelp(void *arg) {
     pthread_cond_broadcast(&(t3->finished));
     pthread_mutex_unlock(&(t3->lockit)); 
 
+
+
     }
     return nullptr;
 }
 
 ThreadPool::ThreadPool(int num_threads) : stoprequested(false) {
-    threads.resize(num_threads);
-    pthread_cond_init(&taskavailable, nullptr);
     pthread_mutex_init(&mutexs, nullptr);
+    pthread_cond_init(&taskavailable, nullptr);
+    threads.resize(num_threads);
     for(int i = 0; i < num_threads; i ++){
         pthread_create(&threads[i], NULL, threadhelp, this);        
     }
@@ -44,31 +50,22 @@ ThreadPool::ThreadPool(int num_threads) : stoprequested(false) {
 
 
 void ThreadPool::SubmitTask(const std::string &name, Task* task) {
-    
-    pthread_cond_init(&(task->finished), nullptr);
-    pthread_mutex_init(&(task->lockit), nullptr);
-    pthread_mutex_lock(&(task->lockit));
-    task->complete = false;
-    pthread_mutex_unlock(&(task->lockit));
     pthread_mutex_lock(&mutexs);
+    pthread_mutex_lock(&(task->lockit));
     tasks11.push(task);
-    TaskS.push_back(make_tuple(name,task));
+    task->complete = false;
+    TaskS.insert({name,task});
+    pthread_mutex_unlock(&(task->lockit));
     pthread_cond_broadcast(&taskavailable);
     pthread_mutex_unlock(&mutexs);
-
+    
 
 }
 
 void ThreadPool::WaitForTask(const std::string &name) {
     pthread_mutex_lock(&mutexs);
-       Task *t4 = nullptr;
-      for (const auto& el : TaskS) {
-
-        if (get<0>(el) == name){
-            t4 = get<1>(el);
-            break;
-        }
-      }   
+    Task *t4 = TaskS.at(name);
+      
       //cout << "going.."<< name << endl;
     pthread_mutex_unlock(&mutexs); 
     pthread_mutex_lock(&(t4->lockit));
@@ -77,7 +74,11 @@ void ThreadPool::WaitForTask(const std::string &name) {
 
     }
     pthread_mutex_unlock(&(t4->lockit));
+
     delete t4;
+  
+   
+    
 }
 
 void ThreadPool::Stop() {
@@ -90,6 +91,11 @@ void ThreadPool::Stop() {
     for(pthread_t &thread: threads){
         pthread_join(thread, nullptr);
     }
+    //Task *t5 = nullptr;
+    threads.clear();
+    TaskS.clear();
     pthread_cond_destroy(&taskavailable);
     pthread_mutex_destroy(&mutexs);
+    //pthread_mutex_destroy(&(t5->lockit));
+    //delete t5;
 }

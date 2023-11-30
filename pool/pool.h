@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 using namespace std;
 
@@ -30,7 +31,7 @@ public:
         pthread_mutex_t mutexs;
         pthread_cond_t taskavailable;
         bool stoprequested;
-        vector<tuple<string,Task*>> TaskS;
+        unordered_map<string, Task*> TaskS;
         vector<pthread_t> threads;
         queue<Task*> tasks11;
         
