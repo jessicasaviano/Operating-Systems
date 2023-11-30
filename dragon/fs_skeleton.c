@@ -6,11 +6,22 @@
 #include "inode.h"
 #define uint unsigned int
 
+//-create is like making a new "tool box" (IMAGE FILE), and putting your first tool ina specific part of the box (ike inode in block D at position I)
+//you want to put a new tool (-FILE) into the tool box (N blocks)
+//some compartments in the tool box are reserved for inodes (M inode blocks)
+//if the tools are too big for one (data) block, you will need hidden inode blocks to store the other parts
+//the -insert command lets you add more tools to your toolbox, you're basically syaing heres a new FILE, i want to add it to IMAGE FILE, at this positon, and it belongs to this ID.
+//-extract also uses UID and GID to find and take out the tool you want
+//the tools can be from different paths (PDF, JPEG, etc.), and you must put them in a speicif room (PATH)
+//as you find each tool you keep track of its inode location (where it was found), and how big the tool was (file size)
+//you are also looking through the tool box (-extract) and making note of every block that is empty
+//you write down all of these tools in a sepcial notebook (UNUSED_BLOCKS), so you know where you can put other tools in the future
+ 
 
 uint INODE_BLOCKS;
 uint DATA_BLOCKS;
 uint TOTAL_BLOCKS;
-
+int free_blocks;
 #define INODE_SIZE sizeof(struct inode)
 #define INODES_PER_BLOCK (BLOCK_SZ / INODE_SIZE)
 #define TOTAL_INODES (INODE_BLOCKS * INODES_PER_BLOCK)
@@ -43,11 +54,14 @@ void write_int(int pos, uint val)
   int *ptr = (uint*)&rawdata[pos];
   *ptr = val;
 }
+
+/*
 void read_int(int pos)
 {
   int *ptr = (uint*)&rawdata[pos];
 
 }
+*/
 //do I need a write and read for iblock, i2block, and i3block?
 
 
@@ -74,7 +88,6 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
     exit(-1);
   }
 
-
   //HANDLE DIRECT BLOCKS
   for (i = 0; i < N_DBLOCKS && !feof(fpr); i++) {
     blockno = get_free_block();
@@ -99,7 +112,7 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
             fclose(fpr);
             return;
         }
-        ip->iblocks[i] = iblock_no;
+        ip->iblocks[i] = iblock_no;  //pointers to indirect blocks
         int *iblock = (int *)&rawdata[iblock_no * BLOCK_SZ];
 
         for (int j = 0; j < BLOCK_SZ / sizeof(int) && !feof(fpr); j++) {
@@ -220,7 +233,7 @@ void obtain_inode_for_extraction(const char *image_filename, uint uid, uint gid,
 
 
 
-void traversing_inode(struct inode *ip, const char *output_path, unsigned char *disk_image, int inode_byte_position){
+void traversing_inode_cnstruct_file(struct inode *ip, const char *output_path, unsigned char *disk_image, int inode_byte_position){
 
 }
 
@@ -267,12 +280,12 @@ void main(int argc, char **argv) // add argument handling
     INODE_BLOCKS = M;
     DATA_BLOCKS = N - M;
 
-    rawdata = (unsigned char *)calloc(TOTAL_BLOCKS, BLOCK_SZ);
-    bitmap = (char *)calloc(TOTAL_BLOCKS, sizeof(char));
+    rawdata = (unsigned char *)calloc(TOTAL_BLOCKS, BLOCK_SZ); //simulate the actual disk space
+    bitmap = (char *)calloc(TOTAL_BLOCKS, sizeof(char)); // keeps track of which blocks are free
 
     if (!rawdata || !bitmap) {
         perror("Memory allocation failed");
-        return EXIT_FAILURE;
+        exit(-1);
     }
 
     place_file((char *)in_filename, UID, GID, D, I);
@@ -282,7 +295,7 @@ void main(int argc, char **argv) // add argument handling
         perror("Failed to open output file");
         free(rawdata);
         free(bitmap);
-        return EXIT_FAILURE;
+        exit(-1);
     }
 
     if (fwrite(rawdata, BLOCK_SZ, TOTAL_BLOCKS, outfile) != TOTAL_BLOCKS) {
@@ -290,7 +303,7 @@ void main(int argc, char **argv) // add argument handling
         fclose(outfile);
         free(rawdata);
         free(bitmap);
-        return EXIT_FAILURE;
+        exit(-1);
     }
 
     fclose(outfile);
