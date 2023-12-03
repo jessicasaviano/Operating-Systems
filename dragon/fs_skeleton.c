@@ -5,6 +5,8 @@
 #include <assert.h>
 #include "inode.h"
 #include <string.h>
+#include <linux/limits.h>
+
 #define uint unsigned int
 
 //-create is like making a new "tool box" (IMAGE FILE), and putting your first tool ina specific part of the box (ike inode in block D at position I)
@@ -19,13 +21,15 @@
 //you write down all of these tools in a sepcial notebook (UNUSED_BLOCKS), so you know where you can put other tools in the future
  
 
-uint INODE_BLOCKS;
+
 uint DATA_BLOCKS;
 uint TOTAL_BLOCKS;
+uint INODE_BLOCKS;
+
 int free_blocks;
 #define INODE_SIZE sizeof(struct inode)
 #define INODES_PER_BLOCK (BLOCK_SZ / INODE_SIZE)
-#define TOTAL_INODES (INODE_BLOCKS * INODES_PER_BLOCK)
+
 
 static unsigned char *rawdata;
 static char *bitmap;
@@ -65,17 +69,21 @@ void write_block(int pos, unsigned char *val, size_t sizen)
     // Copying data to the specified position
     memcpy(&rawdata[pos], val, sizen);
 }
+void create_disk_image(uint total_blocks, uint block_size) {
+    rawdata = (unsigned char *)calloc(total_blocks, block_size);
+    if (!rawdata) {
+        perror("Failed to allocate memory for rawdata");
+        exit(-1);
+    }
 
-
-/*
-void read_int(int pos)
-{
-  int *ptr = (uint*)&rawdata[pos];
+    bitmap = (char *)calloc(total_blocks, sizeof(char));
+    if (!bitmap) {
+        perror("Failed to allocate memory for bitmap");
+        free(rawdata);
+        exit(-1);
+    }
 
 }
-*/
-//do I need a write and read for iblock, i2block, and i3block?
-
 
 
 void place_file(char *file, int uid, int gid, uint inode_position, uint block_pos_inode)
@@ -85,8 +93,8 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
   //nbytes = 0;
   //int i2block_index, i3block_index;
   struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];
-  printf("uid = %d\n", block_pos_inode);
-  printf("guid = %d\n", inode_position);
+  //printf("uid = %d\n", block_pos_inode);
+  //printf("guid = %d\n", inode_position);
 
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
@@ -226,129 +234,93 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
     printf("Successfully wrote %d bytes of file %s\n", ip->size, file);
 }
 
-int is_inode_block(int blockno) {
-    return blockno < INODE_BLOCKS;
+void load_disk_image(const char *image_filename) {
+  
+    FILE *image_fptr = fopen(image_filename, "rb");
+    if (!image_fptr) {
+        perror("Error opening image file for reading");
+        exit(-1);
+    }
+
+    // Determine the file size
+    fseek(image_fptr, 0, SEEK_END);
+    long file_size = ftell(image_fptr);
+    fseek(image_fptr, 0, SEEK_SET);
+
+    // Ensure that the file size is a multiple of BLOCK_SZ
+    if (file_size % BLOCK_SZ != 0) {
+        fprintf(stderr, "Disk image file size is not a multiple of BLOCK_SZ\n");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    TOTAL_BLOCKS = file_size / BLOCK_SZ;
+
+    // Allocate memory according to the file size
+    if (rawdata != NULL) {
+        free(rawdata);  // Free any previously allocated memory
+    }
+    rawdata = (unsigned char *)malloc(file_size);
+    if (!rawdata) {
+        perror("Memory allocation failed for rawdata");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    // Read the file into rawdata
+    size_t result = fread(rawdata, 1, file_size, image_fptr);
+    if (result != file_size) {
+        perror("Error reading image file");
+        fclose(image_fptr);
+        free(rawdata);
+        exit(-1);
+    }
+
+    fclose(image_fptr);
+     // Initialize or update bitmap here
+    if (bitmap != NULL) {
+        free(bitmap);  // Free any previously allocated memory for bitmap
+    }
+    bitmap = (char *)calloc(TOTAL_BLOCKS, sizeof(char));
+    if (!bitmap) {
+        perror("Memory allocation failed for bitmap");
+        free(rawdata);
+        exit(-1);
+    }
+
+
+   
 }
 
-void traversing_inode_construct_file(struct inode *ip, const char *output_path, unsigned char *disk_image, int block_num){
-   
-  FILE *output_file = fopen(output_path, "wb");
-    if (!output_file) {
-        perror("Failed to open output file");
-        exit(EXIT_FAILURE);
-    }
-
-     
-    // Handle direct blocks
-    for (int i = 0; i < N_DBLOCKS; i++) {
-        if (ip->dblocks[i] != 0) {
-            fwrite(disk_image + ip->dblocks[i] * BLOCK_SZ, BLOCK_SZ, 1, output_file);
-        }
-    }
-   
-    fprintf(stderr, "Usage: disk_image -c\n");
-printf("file found at inode in block %d, file size %u\n", block_num, ip->size);
- fclose(output_file);
-}
 
 
 
-void obtain_inode_for_extraction(const char *image_filename, uint uid, uint gid, const char *output_path){
-     /*
-     FILE *image_file = fopen(image_filename, "rb");
-    if (!image_file) {
-        perror("Failed to open image file");
-        exit(EXIT_FAILURE);
-    }
 
-    unsigned char *disk_image = (unsigned char *)malloc(10 * BLOCK_SZ);
-    fread(disk_image, BLOCK_SZ, 10, image_file);
-    fclose(image_file);
+/*
+
+void extraction(uint uid, uint gid, const char *output_path){
  
-
-    for (int blockno = 0; blockno < 10; blockno++) {
-     
-        struct inode *ip = (struct inode *)(disk_image + blockno * BLOCK_SZ);
-   
-        for (int i = 0; i < INODES_PER_BLOCK; i++) {
-            printf("iud = %d\n",ip->uid);
-            printf("gid = %d\n",ip[i].gid);
-            if (ip[i].uid == uid && ip[i].gid == gid) { // looking at every inode and mlink for 0 and not 0
-                  fprintf(stderr, "Usage: disk_imagcdcdsc dfvdgdfe -c\n");
-                traversing_inode_construct_file(&ip[i], output_path, disk_image, blockno);
-                
-            }
-        }
-    }
-     
-   //fprintf(stderr, "Usage: disk_image -create or -insert\n");
-    
-    free(disk_image);
-    */
-      FILE *image_file = fopen(image_filename, "rb");
-    if (!image_file) {
-        perror("Failed to open image file");
-        exit(EXIT_FAILURE);
-    }
-
-    // Dynamically determine the size of the file
-    fseek(image_file, 0, SEEK_END);
-    long file_size = ftell(image_file);
-    fseek(image_file, 0, SEEK_SET);
-
-    // Allocate memory for the entire disk image
-    unsigned char *disk_image = (unsigned char *)malloc(file_size);
-    if (!disk_image) {
-        perror("Memory allocation failed");
-        fclose(image_file);
-        exit(EXIT_FAILURE);
-    }
-
-    // Read the entire disk image into memory
-    fread(disk_image, 1, file_size, image_file);
-    fclose(image_file);
-
-    // Iterate over each block
-    for (int blockno = 0; blockno < file_size / BLOCK_SZ; blockno++) {
-        printf("iud = %d\n",ip->uid);
-        // Assuming a function to check if a block is an inode block
-        if (is_inode_block(blockno)) {
-            struct inode *ip = (struct inode *)(disk_image + blockno * BLOCK_SZ);
-            printf("iud = %d\n",ip->uid);
-            printf("gid = %d\n",ip[blockno].gid);
-            for (int i = 0; i < INODES_PER_BLOCK; i++) {
-                if (ip[i].uid == uid && ip[i].gid == gid) {
-                    traversing_inode_construct_file(&ip[i], output_path, disk_image, blockno);
-                    printf("file found at inode in block %d, file size %u\n", blockno, ip[i].size);
-                }
-            }
-        }
-    }
-
-    free(disk_image);
 }
 
+*/
 
-
-
-
-
-
-int main(int argc, char **argv) // add argument handling
-{
-   //int i;
-  //FILE *outfile;
-  if (strcmp(argv[1], "-create") == 0  || strcmp(argv[1], "-insert") == 0 ) {
-    
-  if (argc != 18) {
+int main(int argc, char **argv) {
+    if (argc < 2) {
         fprintf(stderr, "Usage: disk_image -create or -insert\n");
         exit(-1);
     }
+
+    const char *image_filename;
     int N, M, D, I, UID, GID;
-    
-    const char *in_filename, *image_filename;
-    uint i;
-    for (i = 2; i < 17; ++i) {
+    const char *in_filename;
+
+    if (strcmp(argv[1], "-create") == 0) {
+        if (argc != 18) {
+            fprintf(stderr, "Usage: disk_image -create ...\n");
+            exit(-1);
+        }
+
+        for (int i = 2; i < 17; ++i) {
       if (strcmp(argv[i], "-image") == 0) {
         image_filename = argv[i+1];
       } else if (strcmp(argv[i], "-iblocks") == 0) {
@@ -367,53 +339,112 @@ int main(int argc, char **argv) // add argument handling
         I = atoi(argv[i+1]);
       } 
 
-  
-//printf("I = %u\n", I);
-//printf("INODES_PER_BLOCK = %lu\n", INODES_PER_BLOCK);
-    }
-       printf("UID = %x\n", UID);
-      printf("GID = %x\n", GID);
-         if (D >= M || I >= INODES_PER_BLOCK) {
-        fprintf(stderr, "Invalid inode block or position\n");
-        exit(-1);
+ 
     }
 
-    TOTAL_BLOCKS = N;
-    INODE_BLOCKS = M;
-    DATA_BLOCKS = N - M;
+        TOTAL_BLOCKS = N;
+        INODE_BLOCKS = M;
+        DATA_BLOCKS = N - M;
 
-    rawdata = (unsigned char *)calloc(TOTAL_BLOCKS, BLOCK_SZ); //simulate the actual disk space
-    bitmap = (char *)calloc(TOTAL_BLOCKS, sizeof(char)); // keeps track of which blocks are free
+        create_disk_image(TOTAL_BLOCKS, BLOCK_SZ);  // Allocate memory
 
-    if (!rawdata || !bitmap) {
-        perror("Memory allocation failed");
-        exit(-1);
-    }
+        if (!rawdata || !bitmap) {
+            perror("Memory allocation failed");
+            exit(-1);
+        }
 
-    place_file((char *)in_filename, UID, GID, D, I);
+        place_file((char *)in_filename, UID, GID, D, I);
 
-    FILE *outfile = fopen(image_filename, "wb");
-    if (!outfile) {
-        perror("Failed to open output file");
-        free(rawdata);
-        free(bitmap);
-        exit(-1);
-    }
+        FILE *outfile = fopen(image_filename, "wb");
+        if (!outfile) {
+            perror("Failed to open output file");
+            free(rawdata);
+            free(bitmap);
+            exit(-1);
+        }
 
-    if (fwrite(rawdata, BLOCK_SZ, TOTAL_BLOCKS, outfile) != TOTAL_BLOCKS) {
-        perror("Failed to write to output file");
+        size_t i = fwrite(rawdata, BLOCK_SZ, TOTAL_BLOCKS, outfile);
+        if (i != TOTAL_BLOCKS) {
+            perror("Failed to write to output file");
+            fclose(outfile);
+            free(rawdata);
+            free(bitmap);
+            exit(-1);
+        }
+
         fclose(outfile);
         free(rawdata);
         free(bitmap);
+    } 
+    else if (strcmp(argv[1], "-insert") == 0) {
+        if (argc != 18) {
+            fprintf(stderr, "Usage: disk_image -insert ...\n");
+            exit(-1);
+        }
+
+        for (int i = 2; i < 17; ++i) {
+      if (strcmp(argv[i], "-image") == 0) {
+        image_filename = argv[i+1];
+      } else if (strcmp(argv[i], "-iblocks") == 0) {
+        M = atoi(argv[i+1]);
+      } else if (strcmp(argv[i], "-nblocks") == 0) {
+        N = atoi(argv[i+1]);
+      } else if (strcmp(argv[i], "-inputfile") == 0) {
+        in_filename = argv[i+1];
+      } else if (strcmp(argv[i], "-u") == 0) {
+        UID = atoi(argv[i+1]);
+      } else if (strcmp(argv[i], "-g") == 0) {
+        GID = atoi(argv[i+1]);
+      } else if (strcmp(argv[i], "-block") == 0) {
+        D = atoi(argv[i+1]);
+      } else if (strcmp(argv[i], "-inodepos") == 0) {
+        I = atoi(argv[i+1]);
+      } 
+
+    }
+
+        TOTAL_BLOCKS = N;
+        INODE_BLOCKS = M;
+        DATA_BLOCKS = N - M;
+
+        load_disk_image(image_filename);  // Load existing disk image
+
+        place_file((char *)in_filename, UID, GID, D, I);
+
+        FILE *outfile = fopen(image_filename, "wb");
+        if (!outfile) {
+            perror("Failed to open output file");
+            free(rawdata);
+            free(bitmap);
+            exit(-1);
+        }
+
+        size_t i = fwrite(rawdata, BLOCK_SZ, TOTAL_BLOCKS, outfile);
+        if (i != TOTAL_BLOCKS) {
+            perror("Failed to write to output file");
+            fclose(outfile);
+            free(rawdata);
+            free(bitmap);
+            exit(-1);
+        }
+
+        fclose(outfile);
+        free(rawdata);
+        free(bitmap);
+    }
+    else {
+        fprintf(stderr, "Invalid command. Use -create or -insert\n");
         exit(-1);
     }
 
-    fclose(outfile);
-    free(rawdata);
     printf("Done.\n");
-  exit(0);
-  }
+    return 0;
+}
 
+
+  
+  
+/*
   if(strcmp(argv[1], "-extract") == 0){
     
      
@@ -422,23 +453,23 @@ int main(int argc, char **argv) // add argument handling
         exit(-1);
     }
 
-    int UID, GID;
-    const char *image_filename, *PATH;
+    int UID = 0, GID = 0;
+   const char *image_filename, *PATH;
     uint i;
     for (i = 2; i < 9; ++i) {
       if (strcmp(argv[i], "-image") == 0) {
         image_filename = argv[i+1];
-        printf("D = %s\n", image_filename);
+        //printf("D = %s\n", image_filename);
       
       } else if (strcmp(argv[i], "-u") == 0) {
         UID = atoi(argv[i+1]); 
-        printf("D = %x\n", UID);
+        //printf("D = %x\n", UID);
       } else if (strcmp(argv[i], "-g") == 0) {
         GID = atoi(argv[i+1]);
-        printf("D = %x\n", GID);
+        //printf("D = %x\n", GID);
       }else if (strcmp(argv[i], "-o") == 0) {
         PATH = argv[i+1];
-        printf("D = %s\n", PATH);
+        //printf("D = %s\n", PATH);
       }
 
     }
@@ -448,17 +479,25 @@ int main(int argc, char **argv) // add argument handling
             exit(-1);
         }
 
-      obtain_inode_for_extraction(image_filename, UID, GID, (char *)PATH);
+      if (UID == 0 || GID == 0) {
+      perror("\nERROR:\n UID, GID not specified\n");
+      exit(-1);
+    }
+    FILE *image_fptr = fopen(image_filename, "rb");
+    if (!image_fptr) {
+      perror("\nERROR:\n while opening existing image\n");
+      exit(-1);
+    }
+
    
-
-  }
- 
-  printf("Done.\n");
-  exit(0);
+    //construct_file(image_filename);
   
-
-
-
-
-
-}
+        // Extract files based on UID and GID
+        //extraction(UID, GID, PATH);
+      free(rawdata);
+        free(bitmap);
+       
+  }
+  */
+  
+  
