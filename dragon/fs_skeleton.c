@@ -292,17 +292,95 @@ void load_disk_image(const char *image_filename) {
    
 }
 
-
-
-
-
-/*
-
-void extraction(uint uid, uint gid, const char *output_path){
  
+void extract_file_data(struct inode *ip, FILE *outfile) {
+    unsigned char buf[BLOCK_SZ];
+    size_t bytes_to_write;
+    size_t remaining_size = ip->size;
+
+    // Handle direct blocks
+    for (int i = 0; i < N_DBLOCKS && remaining_size > 0; i++) {
+        bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+        memcpy(buf, &rawdata[ip->dblocks[i] * BLOCK_SZ], bytes_to_write);
+        fwrite(buf, 1, bytes_to_write, outfile);
+        remaining_size -= bytes_to_write;
+    }
+
+    // Handle single indirect blocks
+    for (int i = 0; i < N_IBLOCKS && remaining_size > 0; i++) {
+        int *iblock = (int *)&rawdata[ip->iblocks[i] * BLOCK_SZ];
+        for (int j = 0; j < BLOCK_SZ / sizeof(int) && remaining_size > 0; j++) {
+            bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+            memcpy(buf, &rawdata[iblock[j] * BLOCK_SZ], bytes_to_write);
+            fwrite(buf, 1, bytes_to_write, outfile);
+            remaining_size -= bytes_to_write;
+        }
+    }
+
+    // Handle double indirect blocks
+    if (remaining_size > 0 && ip->i2block != 0) {
+        int *i2block = (int *)&rawdata[ip->i2block * BLOCK_SZ];
+        for (int i = 0; i < BLOCK_SZ / sizeof(int) && remaining_size > 0; i++) {
+            int *ind_block = (int *)&rawdata[i2block[i] * BLOCK_SZ];
+            for (int j = 0; j < BLOCK_SZ / sizeof(int) && remaining_size > 0; j++) {
+                bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                memcpy(buf, &rawdata[ind_block[j] * BLOCK_SZ], bytes_to_write);
+                fwrite(buf, 1, bytes_to_write, outfile);
+                remaining_size -= bytes_to_write;
+            }
+        }
+    }
+
+    // Handle triple indirect blocks
+    if (remaining_size > 0 && ip->i3block != 0) {
+        int *i3block = (int *)&rawdata[ip->i3block * BLOCK_SZ];
+        for (int i = 0; i < BLOCK_SZ / sizeof(int) && remaining_size > 0; i++) {
+            int *i2block = (int *)&rawdata[i3block[i] * BLOCK_SZ];
+            for (int j = 0; j < BLOCK_SZ / sizeof(int) && remaining_size > 0; j++) {
+                int *ind_block = (int *)&rawdata[i2block[j] * BLOCK_SZ];
+                for (int k = 0; k < BLOCK_SZ / sizeof(int) && remaining_size > 0; k++) {
+                    bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                    memcpy(buf, &rawdata[ind_block[k] * BLOCK_SZ], bytes_to_write);
+                    fwrite(buf, 1, bytes_to_write, outfile);
+                    remaining_size -= bytes_to_write;
+                }
+            }
+        }
+    }
 }
 
-*/
+
+
+
+
+void extraction(uint uid, uint gid, const char *output_path){
+  for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+        struct inode *ip = (struct inode *)&rawdata[blockno * BLOCK_SZ];
+
+        for (uint i = 0; i < INODES_PER_BLOCK; i++) {
+            if (ip[i].uid == uid && ip[i].gid == gid && ip[i].size > 0) {
+                char filepath[PATH_MAX];
+                snprintf(filepath, sizeof(filepath), "%s/extracted_file_%d", output_path, blockno);
+
+                FILE *outfile = fopen(filepath, "wb");
+                if (!outfile) {
+                    perror("Failed to open output file");
+                    continue;
+                }
+
+                // Extract and write file data
+                extract_file_data(&ip[i], outfile);
+
+                fclose(outfile);
+                printf("file found at inode in block %u, file size %d\n", blockno, ip[i].size);
+            }
+        }
+    }
+}
+
+
+
+
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -376,6 +454,8 @@ int main(int argc, char **argv) {
         free(rawdata);
         free(bitmap);
     } 
+
+
     else if (strcmp(argv[1], "-insert") == 0) {
         if (argc != 18) {
             fprintf(stderr, "Usage: disk_image -insert ...\n");
@@ -432,72 +512,52 @@ int main(int argc, char **argv) {
         free(rawdata);
         free(bitmap);
     }
-    else {
-        fprintf(stderr, "Invalid command. Use -create or -insert\n");
-        exit(-1);
-    }
 
-    printf("Done.\n");
-    return 0;
-}
-
-
-  
-  
-/*
-  if(strcmp(argv[1], "-extract") == 0){
-    
-     
+   if (strcmp(argv[1], "-extract") == 0) {
     if (argc != 10) {
         fprintf(stderr, "Usage: -extract\n");
         exit(-1);
     }
 
     int UID = 0, GID = 0;
-   const char *image_filename, *PATH;
-    uint i;
-    for (i = 2; i < 9; ++i) {
-      if (strcmp(argv[i], "-image") == 0) {
-        image_filename = argv[i+1];
-        //printf("D = %s\n", image_filename);
-      
-      } else if (strcmp(argv[i], "-u") == 0) {
-        UID = atoi(argv[i+1]); 
-        //printf("D = %x\n", UID);
-      } else if (strcmp(argv[i], "-g") == 0) {
-        GID = atoi(argv[i+1]);
-        //printf("D = %x\n", GID);
-      }else if (strcmp(argv[i], "-o") == 0) {
-        PATH = argv[i+1];
-        //printf("D = %s\n", PATH);
-      }
-
-    }
-
-      if (!image_filename) {
-            fprintf(stderr, "Missing required arguments for -extract\n");
-            exit(-1);
+    const char *image_filename, *PATH;
+    
+    for (int i = 2; i < argc; i += 2) {
+        if (strcmp(argv[i], "-image") == 0) {
+            image_filename = argv[i + 1];
+        } else if (strcmp(argv[i], "-u") == 0) {
+            UID = atoi(argv[i + 1]);
+        } else if (strcmp(argv[i], "-g") == 0) {
+            GID = atoi(argv[i + 1]);
+        } else if (strcmp(argv[i], "-o") == 0) {
+            PATH = argv[i + 1];
         }
-
-      if (UID == 0 || GID == 0) {
-      perror("\nERROR:\n UID, GID not specified\n");
-      exit(-1);
-    }
-    FILE *image_fptr = fopen(image_filename, "rb");
-    if (!image_fptr) {
-      perror("\nERROR:\n while opening existing image\n");
-      exit(-1);
     }
 
-   
-    //construct_file(image_filename);
-  
-        // Extract files based on UID and GID
-        //extraction(UID, GID, PATH);
-      free(rawdata);
-        free(bitmap);
+    if (!image_filename || UID == 0 || GID == 0 || !PATH) {
+        fprintf(stderr, "Missing or invalid arguments for -extract\n");
+        exit(-1);
+    }
+
+    load_disk_image(image_filename);  // Load existing disk image
+    extraction(UID, GID, PATH);
+    free(rawdata);
+    free(bitmap);
+}
        
-  }
+  
+
+    printf("Done.\n");
+    return 0;
+}
+
+
+
+
+  
+  
+/*
+ 
   */
   
   
