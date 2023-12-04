@@ -21,7 +21,6 @@
 //you write down all of these tools in a sepcial notebook (UNUSED_BLOCKS), so you know where you can put other tools in the future
  
 
-
 uint DATA_BLOCKS;
 uint TOTAL_BLOCKS;
 uint INODE_BLOCKS;
@@ -41,17 +40,16 @@ int get_free_block()
         if (bitmap[blockno] == 0) {  
             bitmap[blockno] = 1;  
               // Mark the block as used
+                printf("Allocating block number: %d\n", blockno);
               data_block_filled++;
+              
             return blockno;         
         }
     }
 
     perror("\nERROR:\n all data blocks in use!!!!\n");
     exit(-1);
-  // fill in here
-  //assert(blockno < TOTAL_BLOCKS);
-  //assert(bitmap[blockno]);
-  //return blockno;
+  
 }
 
 void write_block(int pos, unsigned char *val, size_t sizen)
@@ -87,6 +85,26 @@ void create_disk_image(uint total_blocks, uint block_size) {
     }
 
 }
+void save_bitmap(const char *bitmap_filename) {
+    FILE *file = fopen(bitmap_filename, "wb");
+    if (!file) {
+        perror("Failed to open bitmap file for writing");
+        exit(-1);
+    }
+
+    fwrite(bitmap, sizeof(char), TOTAL_BLOCKS, file);
+    fclose(file);
+}
+void load_bitmap(const char *bitmap_filename) {
+    FILE *file = fopen(bitmap_filename, "rb");
+    if (!file) {
+        perror("Failed to open bitmap file for reading");
+        exit(-1);
+    }
+
+    fread(bitmap, sizeof(char), TOTAL_BLOCKS, file);
+    fclose(file);
+}
 
 
 void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_position)
@@ -115,6 +133,8 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
   fpr = fopen(file, "rb");
   if (!fpr) {
     perror(file);
+    free(rawdata);
+    free(bitmap);
     exit(-1);
   }
 
@@ -126,6 +146,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
             return;
         }
     ip->dblocks[i] = blockno;
+    bitmap[blockno] = 1;
     // fill in here
     size_t bytes_read = fread(buf, 1, BLOCK_SZ, fpr);
     write_block(blockno, buf, bytes_read);
@@ -143,6 +164,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
             return;
         }
         ip->iblocks[i] = iblock_no;  //pointers to indirect blocks
+        bitmap[iblock_no] = 1;
         int *iblock = (int *)&rawdata[iblock_no * BLOCK_SZ];
 
         for (int j = 0; j < BLOCK_SZ / sizeof(int) && !feof(fpr); j++) {
@@ -166,6 +188,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
             return;
         }
         ip->i2block = i2block_no;
+        bitmap[i2block_no] = 1;
         int *i2block = (int *)&rawdata[i2block_no * BLOCK_SZ];
 
         for (int i = 0; i < BLOCK_SZ / sizeof(int) && !feof(fpr); i++) {
@@ -199,6 +222,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
             return;
         }
         ip->i3block = i3block_no;
+        bitmap[i3block_no] = 1;
         int *i3block = (int *)&rawdata[i3block_no * BLOCK_SZ];
 
         for (int i = 0; i < BLOCK_SZ / sizeof(int) && !feof(fpr); i++) {
@@ -233,6 +257,13 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
             }
         }
     }
+     for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+         //printf("blockno: %d\n", bitmap[blockno]);
+        
+        if (bitmap[blockno] == 1) {
+             printf("]te %d\n", blockno);
+        }
+     }
 
     fclose(fpr);
     
@@ -240,27 +271,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
     printf("Successfully wrote %d bytes of file %s\n", ip->size, file);
 }
 
-void load_disk_image(const char *image_filename) {
-  
-
-    //memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
-     
-
-    // Logic to reconstruct the bitmap based on the loaded disk image
-    
-
-    // Update bitmap based on inode information
-    for (uint blockno = 0; blockno < INODE_BLOCKS; blockno++) {
-        struct inode *ip = (struct inode *)&rawdata[blockno * BLOCK_SZ];
-        for (uint i = 0; i < INODES_PER_BLOCK; i++) {
-            if (ip[i].size > 0) {
-                // Mark the blocks used by this inode as used in the bitmap
-                // This includes direct blocks, indirect blocks, etc.
-                // For each block used by the file, do something like:
-                bitmap[i] = 1;
-            }
-        }
-    }
+void load_disk_image(const char *image_filename, const char *bitmap_filename) {
 
 
     FILE *image_fptr = fopen(image_filename, "rb");
@@ -304,7 +315,14 @@ void load_disk_image(const char *image_filename) {
     }
 
     fclose(image_fptr);
-     // Initialize or update bitmap here
+    // Load the bitmap
+    FILE *bitmap_fptr = fopen(bitmap_filename, "rb");
+    if (!bitmap_fptr) {
+        perror("Error opening bitmap file for reading");
+        exit(-1);
+    }
+
+    // Allocate memory for bitmap
     if (bitmap != NULL) {
         free(bitmap);  // Free any previously allocated memory for bitmap
     }
@@ -315,6 +333,16 @@ void load_disk_image(const char *image_filename) {
         exit(-1);
     }
 
+    // Read the bitmap file into bitmap
+    size_t bitmap_result = fread(bitmap, sizeof(char), TOTAL_BLOCKS, bitmap_fptr);
+    if (bitmap_result != TOTAL_BLOCKS) {
+        perror("Error reading bitmap file");
+        fclose(bitmap_fptr);
+        free(bitmap);
+        free(rawdata);
+        exit(-1);
+    }
+    fclose(bitmap_fptr);
 
    
 }
@@ -388,6 +416,8 @@ void write_unused_blocks(const char *output_path) {
     }
 
     for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+         printf("blockno: %d\n", bitmap[blockno]);
+        
         if (bitmap[blockno] == 0) {
             fprintf(unused_blocks_file, "%u\n", blockno);
         }
@@ -438,6 +468,7 @@ int main(int argc, char **argv) {
     const char *image_filename;
     int N, M, D, I, UID, GID;
     const char *in_filename;
+     const char *bitmap_filename = "bitmap.dat";
 
     if (strcmp(argv[1], "-create") == 0) {
         if (argc != 18) {
@@ -504,6 +535,7 @@ int main(int argc, char **argv) {
             free(bitmap);
             exit(-1);
         }
+         save_bitmap(bitmap_filename);
 
         fclose(outfile);
         free(rawdata);
@@ -516,6 +548,7 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Usage: disk_image -insert ...\n");
             exit(-1);
         }
+         load_bitmap(bitmap_filename);
 
         for (int i = 2; i < 17; ++i) {
       if (strcmp(argv[i], "-image") == 0) {
@@ -550,7 +583,7 @@ int main(int argc, char **argv) {
       exit(-1);
     }
 
-        load_disk_image(image_filename);  // Load existing disk image
+        load_disk_image(image_filename, bitmap_filename);  // Load existing disk image
 
         place_file((char *)in_filename, UID, GID, D, I);
 
@@ -581,7 +614,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage: -extract\n");
         exit(-1);
     }
-
+     load_bitmap(bitmap_filename);
     int UID = 0, GID = 0;
     const char *image_filename, *PATH;
     
@@ -602,7 +635,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-    load_disk_image(image_filename);  // Load existing disk image
+    load_disk_image(image_filename, bitmap_filename);  // Load existing disk image
     extraction(UID, GID, PATH);
     free(rawdata);
     free(bitmap);
@@ -614,13 +647,3 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-
-
-
-  
-  
-/*
- 
-  */
-  
-  
