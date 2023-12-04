@@ -75,8 +75,11 @@ void create_disk_image(uint total_blocks, uint block_size) {
         perror("Failed to allocate memory for rawdata");
         exit(-1);
     }
-
+    
     bitmap = (char *)calloc(total_blocks, sizeof(char));
+    for (int i = 0; i < INODE_BLOCKS; i++) {
+        bitmap[i] = 1;
+    }
     if (!bitmap) {
         perror("Failed to allocate memory for bitmap");
         free(rawdata);
@@ -86,7 +89,7 @@ void create_disk_image(uint total_blocks, uint block_size) {
 }
 
 
-void place_file(char *file, int uid, int gid, uint inode_position, uint block_pos_inode)
+void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_position)
 {
  int blockno;
   int i;
@@ -95,6 +98,7 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
   struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];
   //printf("uid = %d\n", block_pos_inode);
   //printf("guid = %d\n", inode_position);
+   //printf("Placing inode at block %u, position %u\n", block_pos_inode, inode_position);
 
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
@@ -231,11 +235,34 @@ void place_file(char *file, int uid, int gid, uint inode_position, uint block_po
     }
 
     fclose(fpr);
+    
+
     printf("Successfully wrote %d bytes of file %s\n", ip->size, file);
 }
 
 void load_disk_image(const char *image_filename) {
   
+
+    //memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
+     
+
+    // Logic to reconstruct the bitmap based on the loaded disk image
+    
+
+    // Update bitmap based on inode information
+    for (uint blockno = 0; blockno < INODE_BLOCKS; blockno++) {
+        struct inode *ip = (struct inode *)&rawdata[blockno * BLOCK_SZ];
+        for (uint i = 0; i < INODES_PER_BLOCK; i++) {
+            if (ip[i].size > 0) {
+                // Mark the blocks used by this inode as used in the bitmap
+                // This includes direct blocks, indirect blocks, etc.
+                // For each block used by the file, do something like:
+                bitmap[i] = 1;
+            }
+        }
+    }
+
+
     FILE *image_fptr = fopen(image_filename, "rb");
     if (!image_fptr) {
         perror("Error opening image file for reading");
@@ -350,17 +377,34 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
 }
 
 
+void write_unused_blocks(const char *output_path) {
+    char filepath[PATH_MAX];
+    snprintf(filepath, sizeof(filepath), "%s/UNUSED_BLOCKS", output_path);
+
+    FILE *unused_blocks_file = fopen(filepath, "w");
+    if (!unused_blocks_file) {
+        perror("Failed to open UNUSED_BLOCKS file for writing");
+        return;
+    }
+
+    for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+        if (bitmap[blockno] == 0) {
+            fprintf(unused_blocks_file, "%u\n", blockno);
+        }
+    }
+
+    fclose(unused_blocks_file);
+}
 
 
-
-void extraction(uint uid, uint gid, const char *output_path){
-  for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+void extraction(uint uid, uint gid, const char *output_path) {
+    for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
         struct inode *ip = (struct inode *)&rawdata[blockno * BLOCK_SZ];
 
         for (uint i = 0; i < INODES_PER_BLOCK; i++) {
             if (ip[i].uid == uid && ip[i].gid == gid && ip[i].size > 0) {
                 char filepath[PATH_MAX];
-                snprintf(filepath, sizeof(filepath), "%s/extracted_file_%d", output_path, blockno);
+                snprintf(filepath, sizeof(filepath), "%s/extracted_file_%d_%d", output_path, blockno, i);
 
                 FILE *outfile = fopen(filepath, "wb");
                 if (!outfile) {
@@ -370,12 +414,15 @@ void extraction(uint uid, uint gid, const char *output_path){
 
                 // Extract and write file data
                 extract_file_data(&ip[i], outfile);
-
                 fclose(outfile);
+                 //printf("Processing inode at block %u\n", blockno);
+
+                // Print the block number where the inode was found and the file size
                 printf("file found at inode in block %u, file size %d\n", blockno, ip[i].size);
             }
         }
     }
+    write_unused_blocks(output_path);
 }
 
 
@@ -423,6 +470,14 @@ int main(int argc, char **argv) {
         TOTAL_BLOCKS = N;
         INODE_BLOCKS = M;
         DATA_BLOCKS = N - M;
+        if (D >= M) {
+      perror("\nERROR:\n D must be less than M\n");
+      exit(0);
+    }
+    if (I >= INODES_PER_BLOCK) {
+      perror("\nERROR:\n invalid inode position\n");
+      exit(0);
+    }
 
         create_disk_image(TOTAL_BLOCKS, BLOCK_SZ);  // Allocate memory
 
@@ -486,6 +541,14 @@ int main(int argc, char **argv) {
         TOTAL_BLOCKS = N;
         INODE_BLOCKS = M;
         DATA_BLOCKS = N - M;
+        if (D >= M) {
+      perror("\nERROR:\n D must be less than M\n");
+      exit(-1);
+    }
+    if (I >= INODES_PER_BLOCK) {
+      perror("\nERROR:\n invalid inode position\n");
+      exit(-1);
+    }
 
         load_disk_image(image_filename);  // Load existing disk image
 
