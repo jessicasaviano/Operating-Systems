@@ -79,6 +79,8 @@ void create_disk_image(uint total_blocks, uint block_size) {
     if (!rawdata) {
         perror("Failed to allocate memory for rawdata");
         exit(-1);
+
+
     }
    bitmap = (char *)calloc(total_blocks, sizeof(char));
     memset(bitmap, 0, total_blocks * sizeof(char));
@@ -400,7 +402,7 @@ for (size_t i = 0; i < 100000; i++) {
 printf("\n");
     size_t bytes_to_write;
 
-    for (uint blockno = 0; blockno < INODE_BLOCKS; blockno++) {
+    for (uint blockno = 0; blockno < 10; blockno++) {
         struct inode *inodes = (struct inode *)&disk_image[blockno * BLOCK_SZ];
 
         for (uint i = 0; i < INODES_PER_BLOCK; i++) {
@@ -668,16 +670,30 @@ int main(int argc, char **argv) {
        
     
     fclose(image_fptr);
-    for (int i = 0; i < TOTAL_BLOCKS; i++) {
-        printf("%d", bitmap[i]);
+    
+ printf("Bitma11p status:\n");
+    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d",bitmap[i]);
     }
+    printf("\n");
     
     scan_disk_image(rawdata, bitmap);
+    
+    printf("Bitma22p status:\n");
+    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d",bitmap[i]);
+    }
+    printf("\n");
 
 
         place_file((char *)in_filename, UID, GID, D, I);
 
-       
+       printf("Bitma33p status:\n");
+    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d",bitmap[i]);
+    }
+    printf("\n");
+
          
 
         FILE *outfile = fopen(image_filename, "wb");
@@ -779,23 +795,27 @@ int main(int argc, char **argv) {
        
         bitmap[i] = 1;
     }
+    printf("Bitma11p status:\n");
+    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d",bitmap[i]);
+    }
+    printf("\n");
 
     scan_disk_image(rawdata, bitmap);
 
-printf("\n");
-printf("Bitmap status: ");
-    for (int i = 0; i < TOTAL_BLOCKS; i++) {
-        printf("%d", bitmap[i]);
+    printf("Bitma22p status:\n");
+    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d",bitmap[i]);
     }
+    printf("\n");
+
+
     
     fclose(image_fptr1);
 
     extraction(UID, GID, PATH);
     
-   printf("Bitmap status: ");
-    for (int i = 0; i < TOTAL_BLOCKS; i++) {
-        printf("%d", bitmap[i]);
-    }
+  
 
         free(rawdata);
         free(bitmap);
