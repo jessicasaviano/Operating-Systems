@@ -36,28 +36,18 @@ static char *bitmap;
 
 int get_free_block()
 {
-  for (int blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
+    for (int blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
         if (bitmap[blockno] == 0) {  
-            bitmap[blockno] = 1;  
-              // Mark the block as used
-                printf("Allocating block number: %d\n", blockno);
-              //data_block_filled++;
-              
+            bitmap[blockno] = 1;  // Mark the block as used
+            printf("Allocating block number: %d\n", blockno);
             return blockno;         
         }
-        printf("Bitmap status: ");
-    for (int i = 0; i < TOTAL_BLOCKS; i++) {
-        printf("%d", bitmap[i]);
-    }
-    printf("\n");
-   
     }
 
-    perror("\nERROR:\n all data blocks in use!!!!\n");
-    exit(-1);
-
-  
+    printf("No free blocks available.\n");
+    return -1;  // Return -1 to indicate no free block is available
 }
+      
 
 void write_block(int pos, unsigned char *val, size_t sizen)
 {
@@ -76,8 +66,8 @@ void write_block(int pos, unsigned char *val, size_t sizen)
     memcpy(&rawdata[pos], val, sizen);
     printf("rawdata after write at position %d: ", pos);
     for (size_t i = 0; i < sizen; i++) {
-    printf("%02x ", rawdata[pos + i]);
-    printf("pos+i: %ld\n", pos+i);
+    //printf("%02x ", rawdata[pos + i]);
+    //printf("pos+i: %ld\n", pos+i);
      //rintf("pos+i: %d\n", pos+i);
 }
 
@@ -91,10 +81,12 @@ void create_disk_image(uint total_blocks, uint block_size) {
         exit(-1);
     }
    bitmap = (char *)calloc(total_blocks, sizeof(char));
+    memset(bitmap, 0, total_blocks * sizeof(char));
+
     //bitmap = (char *)(rawdata + INODE_BLOCKS * block_size);
     //memset(bitmap, 0, total_blocks * sizeof(char));   // Pointing to the section in rawdata allocated for bitmap
     for (int i = 0; i < INODE_BLOCKS; i++) {
-        bitmap[i] = 0;
+        bitmap[i] = 1;
     }
 
     if (!bitmap) {
@@ -107,61 +99,10 @@ void create_disk_image(uint total_blocks, uint block_size) {
 
 
 
-void load_disk_image(const char *image_filename) {
-    FILE *image_fptr = fopen(image_filename, "rb");
-    if (!image_fptr) {
-        perror("Error opening image file for reading");
-        exit(-1);
-    }
-
-    // Determine the file size
-    fseek(image_fptr, 0, SEEK_END);
-    long file_size = ftell(image_fptr);
-    fseek(image_fptr, 0, SEEK_SET);
-
-    // Ensure file size is a multiple of BLOCK_SZ
-    if (file_size % BLOCK_SZ != 0) {
-        fprintf(stderr, "Disk image file size is not a multiple of BLOCK_SZ\n");
-        fclose(image_fptr);
-        exit(-1);
-    }
-
-    TOTAL_BLOCKS = file_size / BLOCK_SZ;
-
-    // Allocate memory according to the file size
-    if (rawdata != NULL) {
-        free(rawdata);  // Free any previously allocated memory
-    }
-    rawdata = (unsigned char *)malloc(file_size);
-    if (!rawdata) {
-        perror("Memory allocation failed for rawdata");
-        fclose(image_fptr);
-        exit(-1);
-    }
-
-    // Read the file into rawdata
-    size_t result = fread(rawdata, 1, file_size, image_fptr);
-    if (result != file_size) {
-        perror("Error reading image file");
-        fclose(image_fptr);
-        free(rawdata);
-        exit(-1);
-    }
 
 
-      bitmap = (char *)malloc(TOTAL_BLOCKS * sizeof(char));
-    if (!bitmap) {
-        perror("Memory allocation failed for bitmap");
-        fclose(image_fptr);
-        free(rawdata);
-        exit(-1);
-    }
-    fread(bitmap, sizeof(char), TOTAL_BLOCKS, image_fptr);
 
-    //bitmap = (char *)(rawdata + INODE_BLOCKS * BLOCK_SZ);
 
-    fclose(image_fptr);
-}
 
 
 
@@ -198,6 +139,14 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
    
 printf("\n");
   //HANDLE DIRECT BLOCKS
+   if(ip->nlink != 0){
+    perror("alreADy FiLleD this spot!");
+    exit(-1);
+   }
+
+
+
+
   for (i = 0; i < N_DBLOCKS && !feof(fpr); i++) {
     blockno = get_free_block();
     printf("blockno: %d\n", blockno);
@@ -206,6 +155,7 @@ printf("\n");
             return;
         }
     ip->dblocks[i] = blockno;
+   
     bitmap[blockno] = 1;
         //printf("%d\n", bitmap[blockno]);
     
@@ -213,17 +163,10 @@ printf("\n");
     
     size_t bytes_read = fread(buf, 1, BLOCK_SZ, fpr);
      //printf("int: %ld\n",bytes_read);
-      printf("Bytes read: %ld\n", bytes_read);
-printf("Buffer content: ");
-for (size_t j = 0; j < bytes_read; j++) {
-    printf("%02x ", buf[j]);
-}
-printf("\n");
 
     write_block(blockno * BLOCK_SZ, buf, bytes_read);
     ip->size += bytes_read;
   }
-
 
  //IF THE FILE SIZE EXCEEDS THE CAPACITY OF THE DIRECT BLOCKS, THEN WE HAVE TO USE INDIRECT!
   for (int i = 0; i < N_IBLOCKS && !feof(fpr); i++) {
@@ -344,9 +287,6 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
    
  size_t remaining_size = (ip->size);
 
-
-//printf("COUNT %d\n", count);
-
     // Handle direct blocks
     for (int i = 0; i <(N_DBLOCKS) && remaining_size > 0; i++) {
    
@@ -448,12 +388,85 @@ void extraction(uint uid, uint gid, const char *output_path) {
             }
         }
     }
+    
     write_unused_blocks(output_path);
 }
 
 
+void scan_disk_image(unsigned char *disk_image, char *bitmap) {
+    size_t bytes_to_write;
 
+    for (uint blockno = 0; blockno < INODE_BLOCKS; blockno++) {
+        struct inode *inodes = (struct inode *)&disk_image[blockno * BLOCK_SZ];
 
+        for (uint i = 0; i < INODES_PER_BLOCK; i++) {
+            struct inode *ip = &inodes[i];
+            size_t remaining_size = ip->size;
+
+            if (ip->nlink != 0) {
+                // Mark direct blocks as used
+                for (int k = 0; k < N_DBLOCKS && remaining_size > 0; k++) {
+                    bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                    bitmap[ip->dblocks[k]] = 1;
+                    remaining_size -= bytes_to_write;
+                }
+
+                // Handle single indirect blocks
+                for (int j = 0; j < N_IBLOCKS && remaining_size > 0; j++) {
+                    if (ip->iblocks[j] != 0) {
+                        int *iblock = (int *)&disk_image[ip->iblocks[j] * BLOCK_SZ];
+                        for (int l = 0; l < BLOCK_SZ / sizeof(int) && remaining_size > 0; l++) {
+                            if (iblock[l] != 0) {
+                                bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                                bitmap[iblock[l]] = 1;
+                                remaining_size -= bytes_to_write;
+                            }
+                        }
+                    }
+                }
+
+                // Handle double indirect blocks
+                if (remaining_size > 0 && ip->i2block != 0) {
+                    int *i2block = (int *)&disk_image[ip->i2block * BLOCK_SZ];
+                    for (int j = 0; j < BLOCK_SZ / sizeof(int) && remaining_size > 0; j++) {
+                        if (i2block[j] != 0) {
+                            int *ind_block = (int *)&disk_image[i2block[j] * BLOCK_SZ];
+                            for (int l = 0; l < BLOCK_SZ / sizeof(int) && remaining_size > 0; l++) {
+                                if (ind_block[l] != 0) {
+                                    bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                                    bitmap[ind_block[l]] = 1;
+                                    remaining_size -= bytes_to_write;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Handle triple indirect blocks
+                if (remaining_size > 0 && ip->i3block != 0) {
+                    int *i3block = (int *)&disk_image[ip->i3block * BLOCK_SZ];
+                    for (int j = 0; j < BLOCK_SZ / sizeof(int) && remaining_size > 0; j++) {
+                        if (i3block[j] != 0) {
+                            int *i2block = (int *)&disk_image[i3block[j] * BLOCK_SZ];
+                            for (int m = 0; m < BLOCK_SZ / sizeof(int) && remaining_size > 0; m++) {
+                                if (i2block[m] != 0) {
+                                    int *ind_block = (int *)&disk_image[i2block[m] * BLOCK_SZ];
+                                    for (int l = 0; l < BLOCK_SZ / sizeof(int) && remaining_size > 0; l++) {
+                                        if (ind_block[l] != 0) {
+                                            bytes_to_write = (remaining_size < BLOCK_SZ) ? remaining_size : BLOCK_SZ;
+                                            bitmap[ind_block[l]] = 1;
+                                            remaining_size -= bytes_to_write;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -508,30 +521,20 @@ int main(int argc, char **argv) {
     
 
         create_disk_image(TOTAL_BLOCKS, BLOCK_SZ);  // Allocate memory
-
-        for (size_t i = 0; i < 20; i++) { 
-    printf("%02x ", rawdata[i]);
-}
-
+     
 
         if (!rawdata || !bitmap) {
             perror("Memory allocation failed");
             exit(-1);
         }
-//printf("rawdata content before place_file:\n");
-//for (size_t i = 0; i < 20; i++) { 
-  //  printf("%02x ", rawdata[i]);
-//}
-  //  printf("\n");
        place_file((char *)in_filename, UID, GID, D, I);
+
+       printf("Bitmap status: ");
+    for (int i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d", bitmap[i]);
+    }
+    printf("\n");
        
-       printf("rawdata content after place_file:\n");
-       for (size_t i = 0; i < 20; i++) { 
-    printf("%02x ", rawdata[10240+i]);
-}
-printf("\n");
-
-
         FILE *outfile = fopen(image_filename, "wb");
         if (!outfile) {
             perror("Failed to open output file");
@@ -605,9 +608,76 @@ printf("\n");
       exit(-1);
     }
 
-        load_disk_image(image_filename);  // Load existing disk image
+       FILE *image_fptr = fopen(image_filename, "rb");
+    if (!image_fptr) {
+        perror("Error opening image file for reading");
+        exit(-1);
+    }
+
+    // Determine the file size
+    fseek(image_fptr, 0, SEEK_END);
+    long file_size = ftell(image_fptr);
+    fseek(image_fptr, 0, SEEK_SET);
+
+    // Ensure file size is a multiple of BLOCK_SZ
+    if (file_size % BLOCK_SZ != 0) {
+        fprintf(stderr, "Disk image file size is not a multiple of BLOCK_SZ\n");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    // Allocate memory according to the file size
+    if (rawdata != NULL) {
+        free(rawdata);  // Free any previously allocated memory
+    }
+    rawdata = (unsigned char *)malloc(file_size);
+    if (!rawdata) {
+        perror("Memory allocation failed for rawdata");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    // Read the file into rawdata
+    size_t result = fread(rawdata, 1, file_size, image_fptr);
+    if (result != file_size) {
+        perror("Error reading image file");
+        fclose(image_fptr);
+        free(rawdata);
+        exit(-1);
+    }
+
+    bitmap = (char *)malloc(TOTAL_BLOCKS * sizeof(char));
+    memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
+   
+   //add here
+   
+    for (int i = 0; i < INODE_BLOCKS; i++) {
+        bitmap[i] = 1;
+    }
+
+    // Scan the disk image and update bitmap for used blocks
+    // Assuming you have a function scan_disk_image that updates bitmap
+    scan_disk_image(rawdata, bitmap);
+   
+   
+   
+   
+   
+    printf("\n");
+       
+    
+
+    
+    fclose(image_fptr);
+
+
+
 
         place_file((char *)in_filename, UID, GID, D, I);
+         printf("Bitmap status: ");
+    for (int i = 0; i < TOTAL_BLOCKS; i++) {
+        printf("%d", bitmap[i]);
+    }
 
         FILE *outfile = fopen(image_filename, "wb");
         if (!outfile) {
@@ -658,23 +728,103 @@ printf("\n");
         fprintf(stderr, "Missing or invalid arguments for -extract\n");
         exit(-1);
     }
- load_disk_image(image_filename);  // Load existing disk image
- printf("rawdata content after loading disk image:\n");
-for (size_t i = 0; i < 20; i++) { 
-    printf("%02x ", rawdata[i]);
-}
-printf("\n");
-printf("Bitmap status: ");
+
+      FILE *image_fptr = fopen(image_filename, "rb");
+    if (!image_fptr) {
+        perror("Error opening image file for reading");
+        exit(-1);
+    }
+
+    // Determine the file size
+    fseek(image_fptr, 0, SEEK_END);
+    long file_size = ftell(image_fptr);
+    fseek(image_fptr, 0, SEEK_SET);
+
+    // Ensure file size is a multiple of BLOCK_SZ
+    if (file_size % BLOCK_SZ != 0) {
+        fprintf(stderr, "Disk image file size is not a multiple of BLOCK_SZ\n");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    // Allocate memory according to the file size
+    if (rawdata != NULL) {
+        free(rawdata);  // Free any previously allocated memory
+    }
+    rawdata = (unsigned char *)malloc(file_size);
+    if (!rawdata) {
+        perror("Memory allocation failed for rawdata");
+        fclose(image_fptr);
+        exit(-1);
+    }
+
+    // Read the file into rawdata
+    size_t result = fread(rawdata, 1, file_size, image_fptr);
+    if (result != file_size) {
+        perror("Error reading image file");
+        fclose(image_fptr);
+        free(rawdata);
+        exit(-1);
+    }
+
+    bitmap = (char *)malloc(TOTAL_BLOCKS * sizeof(char));
+    memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
+   
+   //add here
+   
+    for (int i = 0; i < INODE_BLOCKS; i++) {
+        bitmap[i] = 1;
+    }
+
+    // Scan the disk image and update bitmap for used blocks
+    // Assuming you have a function scan_disk_image that updates bitmap
+    scan_disk_image(rawdata, bitmap);
+   
+   
+   
+   
+   
+    printf("\n");
+       
+    
+
+    
+    fclose(image_fptr);
+    
+
+
+    
+  
+    extraction(UID, GID, PATH);
+   printf("Bitmap status: ");
     for (int i = 0; i < TOTAL_BLOCKS; i++) {
         printf("%d", bitmap[i]);
     }
-    printf("\n");
-  
-    extraction(UID, GID, PATH);
-    free(rawdata);
-    free(bitmap);
+
+        FILE *outfile = fopen(image_filename, "wb");
+        if (!outfile) {
+            perror("Failed to open output file");
+            free(rawdata);
+            free(bitmap);
+            exit(-1);
+        }
+
+        size_t i = fwrite(rawdata, BLOCK_SZ, TOTAL_BLOCKS, outfile);
+        if (i != TOTAL_BLOCKS) {
+            perror("Failed to write to output file");
+            fclose(outfile);
+            free(rawdata);
+           
+            exit(-1);
+        }
+
+        fclose(outfile);
+        free(rawdata);
+        free(bitmap);
+       
    
 }
+
        
     printf("Done.\n");
     return 0;
