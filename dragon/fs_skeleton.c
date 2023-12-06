@@ -101,12 +101,6 @@ void create_disk_image(uint total_blocks, uint block_size) {
 
 
 
-
-
-
-
-
-
 void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_position)
 {
  int blockno;
@@ -114,9 +108,13 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
   //nbytes = 0;
   //int i2block_index, i3block_index;
   struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];
-  //printf("uid = %d\n", block_pos_inode);
-  //printf("guid = %d\n", inode_position);
-   //printf("Placing inode at block %u, position %u\n", block_pos_inode, inode_position);
+
+  if (ip->nlink > 0 || ip->size > 0 || ip->uid != 0 || ip->gid != 0) {
+    fprintf(stderr, "Error: Inode position at block %u, position %u is already in use\n", block_pos_inode, inode_position);
+    free(rawdata);
+    free(bitmap);
+    exit(-1);
+}
 
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
@@ -129,6 +127,9 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
   ip->ctime = 1; //?
   ip->mtime = 1; //?
   ip->atime = 1; //?
+
+
+
 
   fpr = fopen(file, "rb");
   if (!fpr) {
@@ -152,6 +153,7 @@ printf("\n");
             fclose(fpr);
             return;
         }
+        
     ip->dblocks[i] = blockno;
    
     bitmap[blockno] = 1;
@@ -390,7 +392,7 @@ void extraction(uint uid, uint gid, const char *output_path) {
     write_unused_blocks(output_path);
 }
 
-
+/*
 void scan_disk_image(unsigned char *disk_image, char *bitmap) {
 
     printf("rawdata content after place_file:\n");
@@ -474,6 +476,7 @@ printf("\n");
     }
 }
 
+*/
 
 int main(int argc, char **argv) {
     if (argc < 2) {
@@ -561,11 +564,13 @@ int main(int argc, char **argv) {
         
 
         //create first byte of every block
+        /*
         printf("Bitmap status: ");
     for (int i = 0; i < TOTAL_BLOCKS; i++) {
         printf("%d", bitmap[i]);
     }
     printf("\n");
+    */
    
 
         fclose(outfile);
@@ -657,11 +662,11 @@ int main(int argc, char **argv) {
     memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
    
    //add here
-   
+   /*
     for (int i = 0; i < INODE_BLOCKS; i++) {
         bitmap[i] = 1;
     }
-    
+    */
     // Scan the disk image and update bitmap for used blocks
     // Assuming you have a function scan_disk_image that updates bitmap
     
@@ -670,6 +675,7 @@ int main(int argc, char **argv) {
        
     
     fclose(image_fptr);
+    /*
     
  printf("Bitma11p status:\n");
     for (uint i = 0; i < TOTAL_BLOCKS; i++) {
@@ -685,9 +691,9 @@ int main(int argc, char **argv) {
     }
     printf("\n");
 
-
+*/
         place_file((char *)in_filename, UID, GID, D, I);
-
+    
        printf("Bitma33p status:\n");
     for (uint i = 0; i < TOTAL_BLOCKS; i++) {
         printf("%d",bitmap[i]);
@@ -782,34 +788,25 @@ int main(int argc, char **argv) {
         exit(-1);
     }
 
-        printf("%ld\n", file_size);
+       
      TOTAL_BLOCKS = file_size / BLOCK_SZ;
- printf("%x\n", TOTAL_BLOCKS);
+ 
      
    
     bitmap = (char *)malloc(TOTAL_BLOCKS * sizeof(char));
     memset(bitmap, 0, TOTAL_BLOCKS * sizeof(char));
    
      //printf("%x\n", INODE_BLOCKS);
-    for (int i = 0; i < 10; i++) {
-       
-        bitmap[i] = 1;
-    }
-    printf("Bitma11p status:\n");
-    for (uint i = 0; i < TOTAL_BLOCKS; i++) {
-        printf("%d",bitmap[i]);
-    }
-    printf("\n");
 
-    scan_disk_image(rawdata, bitmap);
-
+    //scan_disk_image(rawdata, bitmap);
+/*
     printf("Bitma22p status:\n");
     for (uint i = 0; i < TOTAL_BLOCKS; i++) {
         printf("%d",bitmap[i]);
     }
     printf("\n");
 
-
+*/
     
     fclose(image_fptr1);
 
