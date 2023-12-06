@@ -39,12 +39,12 @@ int get_free_block()
     for (int blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
         if (bitmap[blockno] == 0) {  
             bitmap[blockno] = 1;  // Mark the block as used
-            printf("Allocating block number: %d\n", blockno);
+            //printf("Allocating block number: %d\n", blockno);
             return blockno;         
         }
     }
 
-    printf("No free blocks available.\n");
+    //printf("No free blocks available.\n");
     return -1;  // Return -1 to indicate no free block is available
 }
       
@@ -64,16 +64,16 @@ void write_block(int pos, unsigned char *val, size_t sizen)
     // Copying data to the specified position
   
     memcpy(&rawdata[pos], val, sizen);
+    /*
     printf("rawdata after write at position %d: ", pos);
     for (size_t i = 0; i < sizen; i++) {
     //printf("%02x ", rawdata[pos + i]);
     //printf("pos+i: %ld\n", pos+i);
      //rintf("pos+i: %d\n", pos+i);
 }
-
-
-printf("\n");
+*/
 }
+
 void create_disk_image(uint total_blocks, uint block_size) {
     rawdata = (unsigned char *)calloc(total_blocks, block_size);
     if (!rawdata) {
@@ -139,11 +139,8 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
     exit(-1);
   }
    
-printf("\n");
+
   //HANDLE DIRECT BLOCKS
-   
-
-
 
 
   for (i = 0; i < N_DBLOCKS && !feof(fpr); i++) {
@@ -159,7 +156,6 @@ printf("\n");
     bitmap[blockno] = 1;
         //printf("%d\n", bitmap[blockno]);
     
-    printf("\n");
     
     size_t bytes_read = fread(buf, 1, BLOCK_SZ, fpr);
      //printf("int: %ld\n",bytes_read);
@@ -279,7 +275,7 @@ printf("\n");
 }
 
 
-//function tahtll take in inode pointer and do it for me
+
  
 void extract_file_data(struct inode *ip, FILE *outfile) {
     unsigned char buf[BLOCK_SZ];
@@ -296,7 +292,7 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
         remaining_size -= bytes_to_write;
     }
 
-    // Handle single indirect blocks
+    // Handle single indirect blocks!!!!
     for (int i = 0; i < N_IBLOCKS && remaining_size > 0; i++) {
         if (rawdata[i] == 00){
             continue;
@@ -308,7 +304,7 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
             fwrite(buf, 1, bytes_to_write, outfile);
             remaining_size -= bytes_to_write;
         }}
-    // Handle double indirect blocks
+    // Handle double indirect blocks!!!!
     if (remaining_size > 0 && ip->i2block != 0) {
         int *i2block = (int *)&rawdata[ip->i2block * BLOCK_SZ];
         for (int i = 0; i < BLOCK_SZ / sizeof(int) && remaining_size > 0; i++) {
@@ -319,7 +315,7 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
                 fwrite(buf, 1, bytes_to_write, outfile);
                 remaining_size -= bytes_to_write;
             }}}
-    // Handle triple indirect blocks
+    // Handle triple indirect blocks!!!!!!
     if (remaining_size > 0 && ip->i3block != 0) {     
         int *i3block = (int *)&rawdata[ip->i3block * BLOCK_SZ];
         for (int i = 0; i < BLOCK_SZ / sizeof(int) && remaining_size > 0; i++) {
@@ -338,7 +334,7 @@ void extract_file_data(struct inode *ip, FILE *outfile) {
     }
     
 }
-
+/*
 void write_unused_blocks(const char *output_path) {
     char filepath[PATH_MAX];
     snprintf(filepath, sizeof(filepath), "%s/UNUSED_BLOCKS", output_path);
@@ -360,7 +356,7 @@ void write_unused_blocks(const char *output_path) {
     fclose(unused_blocks_file);
 }
 
-
+*/
 
 void extraction(uint uid, uint gid, const char *output_path) {
     for (uint blockno = 0; blockno < TOTAL_BLOCKS; blockno++) {
@@ -370,7 +366,7 @@ void extraction(uint uid, uint gid, const char *output_path) {
             if (ip[i].uid == uid && ip[i].gid == gid ) {
 
                 char filepath[PATH_MAX];
-                snprintf(filepath, sizeof(filepath), "%s/extracted_file_%d_%d", output_path, blockno, i);
+                snprintf(filepath, sizeof(filepath), "%s/extracted%d-%d", output_path, blockno, i);
 
                 FILE *outfile = fopen(filepath, "wb");
                 if (!outfile) {
@@ -384,12 +380,12 @@ void extraction(uint uid, uint gid, const char *output_path) {
                  //printf("Processing inode at block %u\n", blockno);
 
                 // Print the block number where the inode was found and the file size
-                printf("file found at inode in block %u, file size %d\n", blockno, ip[i].size);
+                printf("HEY! FILE FOUND! at inode in block %u and file size %d\n", blockno, ip[i].size);
             }
         }
     }
     
-    write_unused_blocks(output_path);
+   // write_unused_blocks(output_path);
 }
 
 /*

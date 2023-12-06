@@ -1,0 +1,13 @@
+we believe the perpetrator is John Bradley. 
+This is becasue while looking at the metadata for the 4 files we extracted (which are all valid), the only file that
+had a name on it was the .pdf one. In line 3 it wrote: "%%Creator: XV Version 3.10a  Rev: 12/29/94 (PNG patch 1.2)  -  by John Bradley." 
+We noticed in the metadata that these were slides created for Professor Skradon, and after downloading this extracted file as a pdf we noticed
+these were 2004 Skadron slides, for the department of Computer Science.
+
+All 4 files we extracted were found in disk block #231.
+We extracted a .pdf file (the CS slides), a .gif file, a .ps file, and a .tiff file (which is the dragon.tiff file)
+
+
+Our code can correctly create a disk image, insert it (making sure it cannot insert over a block already inuse), and can extract files from 
+a disk image based on the UID and GID. Running the command "./disk_image -extract -image laptop_image.bin -u 10578 -g 1231 -o ." will show proof 
+of the correct fies bein extracted.
