@@ -117,6 +117,18 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
   //printf("uid = %d\n", block_pos_inode);
   //printf("guid = %d\n", inode_position);
    //printf("Placing inode at block %u, position %u\n", block_pos_inode, inode_position);
+   // making error statement 
+  
+   // if (ip->size != 0) {
+   // fprintf (stderr,"Error : Inode position %u in block %u is already in use.\n", inode_position, block_pos_inode);
+        //exit(-1);
+   // }
+
+    if(bitmap[block_pos_inode] || ip->uid != 0 || ip->gid != 0) {
+        fprintf(stderr, "Error: Inode position %u in block %u is already in use.\n", inode_position, block_pos_inode);
+        exit(-1);
+    }
+
 
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
