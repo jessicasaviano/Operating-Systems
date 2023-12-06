@@ -108,6 +108,7 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
   //nbytes = 0;
   //int i2block_index, i3block_index;
   struct inode *ip = (struct inode *)&rawdata[block_pos_inode * BLOCK_SZ + inode_position * INODE_SIZE];
+<<<<<<< HEAD
 
   if (ip->nlink > 0 || ip->size > 0 || ip->uid != 0 || ip->gid != 0) {
     fprintf(stderr, "Error: Inode position at block %u, position %u is already in use\n", block_pos_inode, inode_position);
@@ -115,6 +116,23 @@ void place_file(char *file, int uid, int gid, uint block_pos_inode, uint inode_p
     free(bitmap);
     exit(-1);
 }
+=======
+  //printf("uid = %d\n", block_pos_inode);
+  //printf("guid = %d\n", inode_position);
+   //printf("Placing inode at block %u, position %u\n", block_pos_inode, inode_position);
+   // making error statement 
+  
+   // if (ip->size != 0) {
+   // fprintf (stderr,"Error : Inode position %u in block %u is already in use.\n", inode_position, block_pos_inode);
+        //exit(-1);
+   // }
+
+    if(bitmap[block_pos_inode] || ip->uid != 0 || ip->gid != 0) {
+        fprintf(stderr, "Error: Inode position %u in block %u is already in use.\n", inode_position, block_pos_inode);
+        exit(-1);
+    }
+
+>>>>>>> 0cab68cdbe963f662fbd834352a1a2739820c97b
 
   FILE *fpr;
   unsigned char buf[BLOCK_SZ];
